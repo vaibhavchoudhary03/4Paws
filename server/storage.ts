@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, animals, organizations, memberships, people, medicalSchedule, applications, intakes, adoptions, fosterAssignments, type User, type InsertUser, type Animal, type InsertAnimal, type Organization, type InsertOrganization, type Membership, type InsertMembership, type Person, type InsertPerson, type MedicalSchedule, type InsertMedicalSchedule, type Application, type InsertApplication, type Adoption, type InsertAdoption } from "@shared/schema";
+import { users, animals, organizations, memberships, people, medicalSchedule, applications, intakes, adoptions, fosterAssignments, notes, type User, type InsertUser, type Animal, type InsertAnimal, type Organization, type InsertOrganization, type Membership, type InsertMembership, type Person, type InsertPerson, type MedicalSchedule, type InsertMedicalSchedule, type Application, type InsertApplication, type Adoption, type InsertAdoption, type Note, type InsertNote } from "@shared/schema";
 import { eq, and, desc, lte, gte } from "drizzle-orm";
 
 export interface IStorage {
@@ -39,6 +39,10 @@ export interface IStorage {
   
   // Adoptions
   createAdoption(adoption: InsertAdoption): Promise<Adoption>;
+  
+  // Notes
+  getNotes(subjectType: string, subjectId: string): Promise<Note[]>;
+  createNote(note: InsertNote): Promise<Note>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -174,6 +178,15 @@ export class DatabaseStorage implements IStorage {
   async createAdoption(adoption: InsertAdoption): Promise<Adoption> {
     const [a] = await db.insert(adoptions).values(adoption).returning();
     return a;
+  }
+
+  async getNotes(subjectType: string, subjectId: string): Promise<Note[]> {
+    return await db.select().from(notes).where(and(eq(notes.subjectType, subjectType), eq(notes.subjectId, subjectId))).orderBy(desc(notes.createdAt));
+  }
+
+  async createNote(note: InsertNote): Promise<Note> {
+    const [n] = await db.insert(notes).values(note).returning();
+    return n;
   }
 }
 

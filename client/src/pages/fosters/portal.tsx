@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,12 +9,21 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Weight, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
 import { MetricCard } from "@/components/ui/metric-card";
+import { AddNoteDialog } from "@/components/dialogs/add-note-dialog";
 
 export default function FosterPortal() {
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [selectedAnimal, setSelectedAnimal] = useState<any>(null);
+
   const { data: fosterAnimals = [] } = useQuery({
     queryKey: ["/api/v1/animals"],
     select: (data: any[]) => data.filter(a => a.status === 'fostered').slice(0, 2),
   });
+
+  const handleAddNote = (animal: any) => {
+    setSelectedAnimal(animal);
+    setNoteDialogOpen(true);
+  };
 
   return (
     <AppLayout title="My Foster Animals" subtitle="Welcome back! You have 2 animals in your care.">
@@ -110,7 +120,12 @@ export default function FosterPortal() {
                   <Weight className="w-4 h-4 mr-2" />
                   Log Weight
                 </Button>
-                <Button variant="outline" className="w-full col-span-2" data-testid={`button-add-note-${animal.id}`}>
+                <Button 
+                  variant="outline" 
+                  className="w-full col-span-2" 
+                  data-testid={`button-add-note-${animal.id}`}
+                  onClick={() => handleAddNote(animal)}
+                >
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Add Note
                 </Button>
@@ -163,6 +178,16 @@ export default function FosterPortal() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedAnimal && (
+        <AddNoteDialog
+          open={noteDialogOpen}
+          onOpenChange={setNoteDialogOpen}
+          subjectType="animal"
+          subjectId={selectedAnimal.id}
+          subjectName={selectedAnimal.name}
+        />
+      )}
     </AppLayout>
   );
 }

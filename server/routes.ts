@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import { authenticateUser, hashPassword } from "./auth";
-import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema } from "@shared/schema";
+import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema } from "@shared/schema";
 import Stripe from "stripe";
 import { z } from "zod";
 
@@ -226,6 +226,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertPersonSchema.parse({ ...req.body, organizationId: req.session.organizationId });
       const person = await storage.createPerson(data);
       res.json(person);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Note routes
+  app.get("/api/v1/notes/:subjectType/:subjectId", requireAuth, async (req, res) => {
+    try {
+      const { subjectType, subjectId } = req.params;
+      const notesList = await storage.getNotes(subjectType, subjectId);
+      res.json(notesList);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/v1/notes", requireAuth, async (req, res) => {
+    try {
+      const data = insertNoteSchema.parse({ ...req.body, authorId: req.session.userId });
+      const note = await storage.createNote(data);
+      res.json(note);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
