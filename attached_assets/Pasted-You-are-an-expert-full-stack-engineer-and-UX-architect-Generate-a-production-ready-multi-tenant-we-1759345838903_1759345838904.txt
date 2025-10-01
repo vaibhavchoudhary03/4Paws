@@ -1,0 +1,464 @@
+You are an expert full-stack engineer and UX architect. Generate a production-ready, multi-tenant web application named 4Paws for U.S. animal shelters and foster-based rescues. The app must be web-first, responsive, secure, and easy to learn—optimized for staff and volunteers who have minimal time for training.
+The design must be clean, modern, and navigable without being boring. Use a consistent visual theme anchored in orange, yellow, and white across all screens. Prioritize fast task completion, minimal clicks, and clear information hierarchy.
+The MVP must ship with:
+A coherent domain model, seed data, auth with RBAC, critical workflows (intake, medical tasks, adoptions, foster/volunteer flows), reporting, export feeds to adoption sites, and donation checkout.
+
+
+Interfaces and stubs for integrations (Petfinder/Adopt-a-Pet feed, microchip registration, Shelter Animals Count export, Stripe donations), plus data import/export.
+
+
+A clean folder structure, typing, tests, and docs to support iteration.
+
+
+Product Goals (derived from industry needs)
+Reduce clicks and eliminate spreadsheet workarounds for intake → care → outcome.
+
+
+Make medical scheduling and daily task lists automatic and trustworthy.
+
+
+Provide adoption checkout with donation prompt (proven to lift donations).
+
+
+Enable foster & volunteer portals (limited access) to submit notes, photos, and availability without training burden.
+
+
+Provide exports to adoption sites so animals are visible publicly with no duplicate entry.
+
+
+Deliver one-click reporting for organizational and municipal needs.
+
+
+Design for minimal onboarding: screens should be self-explanatory.
+
+
+Tech Stack (ship working code; no placeholders)
+Framework: Next.js 15 (App Router) + TypeScript
+
+
+UI: Tailwind CSS + shadcn/ui + Lucide icons; Framer Motion for subtle micro-interactions
+
+
+State/validation: RSC where possible; client queries with TanStack Query; Zod schemas end-to-end
+
+
+Auth / RBAC / Multi-tenant: NextAuth (credentials now; OAuth-ready); organizations table; user-org membership with roles: admin, staff, volunteer, foster, readonly
+
+
+DB: PostgreSQL via Prisma (use JSONB for extensible custom fields)
+
+
+Storage: S3-compatible provider (env-based); local disk in dev
+
+
+Email: Provider adapter (Postmark/SendGrid) with local dev transport
+
+
+Payments: Stripe (for donation collection in adoption checkout; toggleable)
+
+
+Jobs: node-cron for scheduled tasks (daily reminders, feed refresh); abstract job runner to swap later
+
+
+API: Versioned REST under /api/v1 with Zod validation; typed responses; auth guard middleware
+
+
+Logging/metrics: Pino logger; request logging; /healthz endpoint; audit_log table
+
+
+Testing: Vitest unit tests + Playwright smoke tests for critical flows (intake, med schedule, adoption checkout)
+
+
+DX: Typed env (zod); pnpm workspaces; seed script for a sample org, users, and 50 animals
+
+
+Brand & Theme (implement in Tailwind config and a ThemeProvider)
+Primary orange: #F97316 (500), hover #EA580C (600); light bg wash #FFF7ED
+
+
+Accent yellow: #FACC15 (400), dark #EAB308 (500)
+
+
+Canvas: #FFFFFF; Ink: slate-900 #0F172A; Sub-ink slate-600 #475569
+
+
+Status: success #16A34A, warning #F59E0B, danger #DC2626, info #2563EB
+
+
+Typography: Inter; generous line-height; rounded-2xl; soft shadows; clear focus states
+
+
+Components must ship with brand tokens and dark-mode-ready tokens (even if dark mode ships later)
+
+
+Information Architecture (web app with login)
+Global nav (left rail desktop; bottom tabs mobile):
+Dashboard (role-aware): today’s medical tasks, overdue items, new intakes, pending adoptions, foster availability alerts, quick actions
+
+
+Animals: searchable list + filters; animal profile
+
+
+People: adopters, fosters, volunteers; unified person profile
+
+
+Intake: guided wizard to add animals fast (photo, microchip, intake type, initial medical)
+
+
+Medical: schedule & daily checklist (vaccines, dewormers, meds, surgeries) with batch actions
+
+
+Adoptions: pipeline (applications → approvals → checkout), contracts, Stripe donation prompt
+
+
+Fosters: roster and availability; assign/move animals; foster self-updates
+
+
+Volunteers: roster; hours tracking; note submission (limited scope)
+
+
+Reports: canned + custom (intake/outcomes, live release rate, LOS, med compliance)
+
+
+Settings (admin): org profile, locations/kennels, roles & permissions, custom fields, integrations, data import/export, API keys
+
+
+Data Model (Prisma)
+Create normalized tables and relations. Include essential indexes and soft-delete where useful.
+organization (id, name, address, settings JSONB)
+
+
+user (id, name, email, hashed_password, status)
+
+
+membership (user_id, organization_id, role enum: admin|staff|volunteer|foster|readonly)
+
+
+location (id, organization_id, name, type enum: shelter|clinic|storage)
+
+
+kennel (id, organization_id, location_id, code, size, species)
+
+
+animal (id, organization_id, name, species enum, breed, sex, color, dob_est, intake_date, status enum: available|hold|adopted|transferred|rto|euthanized|fostered, location_id, kennel_id, microchip, photos[], description, attributes JSONB)
+
+
+intake (id, animal_id, type enum: stray|owner_surrender|transfer_in|confiscation|born_in_care, source JSONB, notes)
+
+
+outcome (id, animal_id, type enum: adoption|transfer_out|return_to_owner|euthanasia, date, details JSONB)
+
+
+medical_record (id, animal_id, type enum: vaccine|treatment|surgery|exam, product, dose, route, date_given, vet_id, notes)
+
+
+medical_schedule (id, animal_id, type enum, due_date, assigned_to, status enum: scheduled|done|missed, notes) // generates daily task lists
+
+
+person (id, organization_id, name, email, phone, address, type enum: adopter|foster|volunteer|donor|staff, flags JSONB)
+
+
+application (id, animal_id, person_id, type enum: adoption|foster, status enum: received|review|approved|denied|withdrawn, form JSONB, notes)
+
+
+foster_assignment (id, animal_id, person_id, start_date, end_date, status enum: active|completed|failed, notes)
+
+
+adoption (id, animal_id, adopter_id (person_id), date, fee_cents, donation_cents, contract_url, payment_intent_id, notes)
+
+
+note (id, subject_type enum: animal|person|adoption, subject_id, author_id, visibility enum: staff_only|public_to_portal, body, tags[])
+
+
+photo (id, subject_type, subject_id, url, caption)
+
+
+volunteer_shift (id, person_id, location_id, start, end, hours)
+
+
+inventory_item (id, organization_id, name, sku, qty, unit, threshold, notes) // basic; prepare for med supply tie-in later
+
+
+report_job (id, organization_id, type enum, params JSONB, status, output_url)
+
+
+integration_config (id, organization_id, provider enum: petfinder|adoptapet|microchip|stripe|sac, config JSONB)
+
+
+audit_log (id, organization_id, actor_id, action, entity, entity_id, data JSONB, created_at)
+
+
+Use enums where noted; put free-form or evolving data into JSONB to avoid schema churn.
+Critical Workflows (build fully)
+1) Intake Wizard (fast path)
+Steps: Scan/upload photo → basic animal info (species, sex, approx DOB) → intake type & source → microchip (optional) → initial medical (checkbox quick-add common vaccines) → assign location/kennel or mark as fostered → review & create.
+
+
+Must be thumb-friendly on mobile. Support batch intake (e.g., litter of 5 puppies) with shared fields and per-animal overrides.
+
+
+On success: enqueue initial medical_schedule tasks (e.g., boosters) and show “Add to adoption sites?” prompt.
+
+
+2) Daily Medical Tasks & Batch Actions
+Medical dashboard: grouped by due date; filters by location/species; actions: “mark done,” “reschedule,” “apply to selected.”
+
+
+Batch update: administer same treatment to multiple animals at once (one dialog, multiple rows updated).
+
+
+Audit logging for all medical changes.
+
+
+3) Adoption Pipeline & Checkout (with donation prompt)
+Kanban: applications in columns (received → review → approved → checkout).
+
+
+Checkout: adopter details → contract e-sign (store URL) → Stripe payment for fee → donation prompt (suggested amounts; one-tap add) → outcome created; pet status changes to “adopted”; receipts emailed.
+
+
+Trigger optional microchip registration stub (server action to integration provider) and Petfinder/Adopt-a-Pet removal.
+
+
+4) Foster Management & Availability
+Foster roster with an “availability” status per foster (available/unavailable/date range; notes on size/behavior preferences).
+
+
+Assign/move animals between fosters; track start/end; alert when nearing length-of-stay threshold.
+
+
+Foster portal (role = foster): view current animals, upload photos/weights, report issues (flags “urgent medical” or “behavior”), toggle availability; scoped permissions so fosters cannot edit protected fields.
+
+
+5) Volunteer Notes (low-training interface)
+Volunteer portal (role = volunteer): simple list of animals at chosen location; per animal: “Walked,” “Fed,” “Play,” “Behavior note,” photo upload. Notes default to staff-only visibility unless toggled.
+
+
+Add QR support: each kennel card includes a QR that deep-links to that animal’s volunteer note form.
+
+
+6) Reporting & Exports
+Canned reports: monthly intake/outcomes, live release rate, average length of stay, medical compliance, foster utilization.
+
+
+Custom queries: simple builder (filters + columns) → CSV export.
+
+
+Adoption feeds: generate Petfinder and Adopt-a-Pet compliant feeds at /api/v1/feeds/petfinder.xml and /api/v1/feeds/adoptapet.xml (configurable mapping); cron refresh daily or on demand.
+
+
+Shelter Animals Count export stub: compile counts and provide a downloadable CSV with SAC categories.
+
+
+7) Data Portability
+CSV import: map columns to core fields for animals and people; dry-run preview; idempotent imports.
+
+
+CSV/JSON export: per entity and full org export; include a data dictionary.
+
+
+UX Requirements
+Speed, clarity, low cognitive load: obvious primary action per screen; keyboard support for staff on desktops; large touch targets on mobile.
+
+
+Consistent patterns: page header with context actions; filters on left; list + detail pattern; sticky action bar on mobile.
+
+
+Empty states explain next steps; success toasts confirm actions; error states explain resolution.
+
+
+Accessibility: focus rings; aria labels; color contrast passes WCAG AA; avoid color-only semantics.
+
+
+Visuals: lean on orange/yellow accents for primary and highlight actions; white canvas; gentle shadows; subtle motion (tap/hover) only.
+
+
+Security & Compliance
+RBAC enforced in server handlers; row-level org filtering on every query.
+
+
+Audit logs for sensitive updates (medical, outcomes, payments).
+
+
+Input validation everywhere (Zod); rate limiting on auth and feeds.
+
+
+File scanning stub for uploads; content-type validation.
+
+
+Secrets via env; never commit secrets.
+
+
+API Surface (typed REST under /api/v1)
+Implement fully for these:
+POST /auth/* (NextAuth handlers)
+
+
+GET/POST /animals, GET /animals/:id, PATCH /animals/:id, DELETE /animals/:id (soft delete)
+
+
+POST /intakes, POST /outcomes
+
+
+GET/POST /medical/schedule, PATCH /medical/schedule/:id, POST /medical/batch
+
+
+GET/POST /applications, PATCH /applications/:id (status transitions)
+
+
+POST /adoptions/checkout (creates Stripe PI, donation prompt; persists adoption)
+
+
+GET /feeds/petfinder.xml, GET /feeds/adoptapet.xml
+
+
+POST /import/*, GET /export/*
+
+
+GET /reports/* (canned, with params)
+
+
+GET/POST /fosters, PATCH /fosters/:id (availability), POST /foster-assignments
+
+
+GET/POST /volunteers, POST /volunteer-notes
+
+
+GET/POST /photos (S3 upload signed URLs)
+
+
+Guard all handlers with org scoping and role checks.
+Seed Data (script)
+Create org: “4Paws Demo Shelter”
+
+
+Users: admin (staff@demo), staff (tech@demo), volunteer, foster (password: demo-only)
+
+
+50 animals (dogs/cats mix) with photos, statuses across the funnel
+
+
+10 scheduled medical tasks due today; 6 overdue
+
+
+8 open adoption applications; 3 in checkout
+
+
+25 fosters (10 marked available with preferences); 20 volunteers with hours
+
+
+Integration config rows with placeholders (feeds enabled)
+
+
+Tests (implement)
+Playwright:
+
+
+Intake wizard: create animal, schedule boosters, confirm dashboard shows new tasks
+
+
+Medical batch: apply treatment to 3 animals, verify records/audit
+
+
+Adoption checkout: approve app → e-sign stub → Stripe test payment → donation added → outcome created
+
+
+Foster portal: foster toggles availability; staff assigns animal; foster uploads note/photo
+
+
+Feeds: fetch XML; validate schema stub
+
+
+Vitest:
+
+
+Zod validators for major payloads
+
+
+RBAC guards on sensitive routes
+
+
+Report calculators (live release rate, LOS)
+
+
+Developer Docs (in README.md)
+Stack overview, env vars, running locally, tests, deploy steps
+
+
+Data dictionary and CSV import mapping guide
+
+
+Theming tokens and how to add components
+
+
+Integration stubs and where to implement real providers
+
+
+Support playbook (backup, logs, troubleshooting)
+
+
+Non-Negotiables (reflecting real shelter pain points)
+Minimal training: flows must be obvious to a new user
+
+
+Volunteer/foster limited-scope portals to reduce staff overhead and capture field notes reliably
+
+
+Daily medical checklist must be accurate and easy to clear
+
+
+Adoption checkout donation prompt must be first-class, not an afterthought
+
+
+Export feeds must work out of the box to eliminate duplicate listings work
+
+
+Data portability (import/export) to avoid lock-in
+
+
+Stretch (stubs only; leave clean seams)
+Licensing/field ops (municipal): call logging, incident, citation—model and route stubs only
+
+
+Transport planning (rescues): basic model and list page; leave scheduling for later
+
+
+Microchip auto-registration: provider interface with no-op default
+
+
+Now implement the app as specified:
+Create the Next.js project with the architecture above.
+
+
+Add the Prisma schema and migrate.
+
+
+Implement pages, components, API routes, and job scheduler.
+
+
+Add brand theme, tokens, and a small component library (Button, Card, Badge, Table, Drawer, Dialog, Tabs, EmptyState, Metric).
+
+
+Ship seed data, tests, and README with clear instructions.
+
+
+Ensure the app runs locally with a single command and seeds a demo org for immediate exploration.
+
+
+Deliver high-quality, readable code with comments only where they add clarity.
+
+
+Name the project 4Paws and use the brand consistently across login, nav, and primary actions.
+
+
+
+
+
+
+
+
+
+
+
+
+
