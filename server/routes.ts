@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { authenticateUser, hashPassword } from "./auth";
 import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema } from "@shared/schema";
 import Stripe from "stripe";
+import { z } from "zod";
 
 // Session middleware
 declare module 'express-session' {
@@ -174,6 +175,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const task = await storage.updateMedicalTask(req.params.id, req.body);
       res.json(task);
     } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/v1/medical/schedule/batch", requireAuth, requireOrg, async (req, res) => {
+    try {
+      const batchUpdateSchema = z.object({
+        taskIds: z.array(z.string()).min(1),
+        updates: z.object({
+          status: z.enum(['scheduled', 'done', 'missed']),
+        }),
+      });
+
+      const { taskIds, updates } = batchUpdateSchema.parse(req.body);
+      
+      const orgId = req.session.organizationId!;
+      const allTasks = await storage.getMedicalTasks(orgId);
+      const validTaskIds = allTasks.map(t => t.id);
+      
+      const tasksToUpdate = taskIds.filter(id => validTaskIds.includes(id));
+      if (tasksToUpdate.length === 0) {
+        return res.status(404).json({ message: "No valid tasks found in your organization" });
+      }
+      
+      const results = await Promise.all(
+        tasksToUpdate.map(id => storage.updateMedicalTask(id, updates))
+      );
+      res.json({ updated: results.length, tasks: results });
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request format", errors: error.errors });
+      }
       res.status(400).json({ message: error.message });
     }
   });

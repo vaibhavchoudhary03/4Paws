@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AppLayout from "@/components/layout/app-layout";
 import { medicalApi } from "@/lib/api";
@@ -7,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle, Plus, ListChecks } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function MedicalIndex() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
   
   const { data: tasks = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/v1/medical/schedule"],
@@ -27,8 +30,68 @@ export default function MedicalIndex() {
     },
   });
 
+  const batchUpdateMutation = useMutation({
+    mutationFn: async ({ taskIds, updates }: { taskIds: string[], updates: any }) => {
+      return await apiRequest("/api/v1/medical/schedule/batch", "POST", { taskIds, updates });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/v1/medical/schedule"] });
+      setSelectedTasks(new Set());
+      toast({
+        title: "Tasks updated",
+        description: `${data.updated} tasks have been marked as complete`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update tasks",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleMarkDone = (taskId: string) => {
     updateTaskMutation.mutate({ id: taskId, data: { status: 'done' } });
+  };
+
+  const handleToggleTask = (taskId: string) => {
+    const newSelected = new Set(selectedTasks);
+    if (newSelected.has(taskId)) {
+      newSelected.delete(taskId);
+    } else {
+      newSelected.add(taskId);
+    }
+    setSelectedTasks(newSelected);
+  };
+
+  const handleSelectAllOverdue = () => {
+    const overdueIds = overdueTasks.map((t: any) => t.id);
+    const newSelected = new Set(selectedTasks);
+    overdueIds.forEach(id => newSelected.add(id));
+    setSelectedTasks(newSelected);
+  };
+
+  const handleSelectAllToday = () => {
+    const todayIds = todayTasks.map((t: any) => t.id);
+    const newSelected = new Set(selectedTasks);
+    todayIds.forEach(id => newSelected.add(id));
+    setSelectedTasks(newSelected);
+  };
+
+  const handleBatchMarkDone = () => {
+    if (selectedTasks.size === 0) {
+      toast({
+        title: "No tasks selected",
+        description: "Please select at least one task to mark as done",
+        variant: "destructive",
+      });
+      return;
+    }
+    batchUpdateMutation.mutate({
+      taskIds: Array.from(selectedTasks),
+      updates: { status: 'done' },
+    });
   };
 
   const now = new Date();
@@ -79,11 +142,19 @@ export default function MedicalIndex() {
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" data-testid="button-batch-actions">
-                <ListChecks className="w-4 h-4 mr-2" />
-                Batch Actions
-              </Button>
-              <Button size="sm" data-testid="button-add-task">
+              {selectedTasks.size > 0 && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  data-testid="button-batch-mark-done"
+                  onClick={handleBatchMarkDone}
+                  disabled={batchUpdateMutation.isPending}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Mark {selectedTasks.size} as Done
+                </Button>
+              )}
+              <Button size="sm" data-testid="button-add-task" disabled>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>
@@ -107,7 +178,13 @@ export default function MedicalIndex() {
                     <AlertTriangle className="w-5 h-5" />
                     Overdue ({overdueTasks.length})
                   </h3>
-                  <Button variant="outline" size="sm" className="text-destructive border-destructive" data-testid="button-select-all-overdue">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive border-destructive" 
+                    data-testid="button-select-all-overdue"
+                    onClick={handleSelectAllOverdue}
+                  >
                     Select All
                   </Button>
                 </div>
@@ -117,7 +194,13 @@ export default function MedicalIndex() {
                   {overdueTasks.map((task: any) => (
                     <div key={task.id} className="p-4 hover:bg-accent/50 transition-colors" data-testid={`task-overdue-${task.id}`}>
                       <div className="flex items-start gap-4">
-                        <input type="checkbox" className="mt-1 w-5 h-5 rounded border-input text-primary" data-testid={`checkbox-${task.id}`} />
+                        <input 
+                          type="checkbox" 
+                          className="mt-1 w-5 h-5 rounded border-input text-primary cursor-pointer" 
+                          data-testid={`checkbox-${task.id}`}
+                          checked={selectedTasks.has(task.id)}
+                          onChange={() => handleToggleTask(task.id)}
+                        />
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
@@ -160,7 +243,12 @@ export default function MedicalIndex() {
                   <CheckCircle className="w-5 h-5 text-success" />
                   Due Today ({todayTasks.length})
                 </h3>
-                <Button variant="outline" size="sm" data-testid="button-select-all-today">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  data-testid="button-select-all-today"
+                  onClick={handleSelectAllToday}
+                >
                   Select All
                 </Button>
               </div>
@@ -176,7 +264,13 @@ export default function MedicalIndex() {
                   {todayTasks.map((task: any) => (
                     <div key={task.id} className="p-4 hover:bg-accent/50 transition-colors" data-testid={`task-today-${task.id}`}>
                       <div className="flex items-start gap-4">
-                        <input type="checkbox" className="mt-1 w-5 h-5 rounded border-input text-primary" />
+                        <input 
+                          type="checkbox" 
+                          className="mt-1 w-5 h-5 rounded border-input text-primary cursor-pointer" 
+                          data-testid={`checkbox-today-${task.id}`}
+                          checked={selectedTasks.has(task.id)}
+                          onChange={() => handleToggleTask(task.id)}
+                        />
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
