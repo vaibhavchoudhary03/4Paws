@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Camera, Weight, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
 import { MetricCard } from "@/components/ui/metric-card";
 import { AddNoteDialog } from "@/components/dialogs/add-note-dialog";
+import { AddPhotoDialog } from "@/components/dialogs/add-photo-dialog";
 
 export default function FosterPortal() {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const [selectedAnimal, setSelectedAnimal] = useState<any>(null);
 
   const { data: fosterAnimals = [] } = useQuery({
@@ -23,6 +25,11 @@ export default function FosterPortal() {
   const handleAddNote = (animal: any) => {
     setSelectedAnimal(animal);
     setNoteDialogOpen(true);
+  };
+
+  const handleAddPhoto = (animal: any) => {
+    setSelectedAnimal(animal);
+    setPhotoDialogOpen(true);
   };
 
   return (
@@ -112,7 +119,12 @@ export default function FosterPortal() {
 
               {/* Quick Actions */}
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" className="w-full" data-testid={`button-add-photo-${animal.id}`}>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  data-testid={`button-add-photo-${animal.id}`}
+                  onClick={() => handleAddPhoto(animal)}
+                >
                   <Camera className="w-4 h-4 mr-2" />
                   Add Photo
                 </Button>
@@ -180,13 +192,22 @@ export default function FosterPortal() {
       </Card>
 
       {selectedAnimal && (
-        <AddNoteDialog
-          open={noteDialogOpen}
-          onOpenChange={setNoteDialogOpen}
-          subjectType="animal"
-          subjectId={selectedAnimal.id}
-          subjectName={selectedAnimal.name}
-        />
+        <>
+          <AddNoteDialog
+            open={noteDialogOpen}
+            onOpenChange={setNoteDialogOpen}
+            subjectType="animal"
+            subjectId={selectedAnimal.id}
+            subjectName={selectedAnimal.name}
+          />
+          <AddPhotoDialog
+            open={photoDialogOpen}
+            onOpenChange={setPhotoDialogOpen}
+            subjectType="animal"
+            subjectId={selectedAnimal.id}
+            subjectName={selectedAnimal.name}
+          />
+        </>
       )}
     </AppLayout>
   );

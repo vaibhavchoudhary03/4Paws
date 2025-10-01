@@ -262,6 +262,7 @@ export const photos = pgTable("photos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   subjectType: text("subject_type").notNull(),
   subjectId: varchar("subject_id").notNull(),
+  authorId: varchar("author_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   url: text("url").notNull(),
   caption: text("caption"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

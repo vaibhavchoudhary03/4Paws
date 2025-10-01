@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, animals, organizations, memberships, people, medicalSchedule, applications, intakes, adoptions, fosterAssignments, notes, type User, type InsertUser, type Animal, type InsertAnimal, type Organization, type InsertOrganization, type Membership, type InsertMembership, type Person, type InsertPerson, type MedicalSchedule, type InsertMedicalSchedule, type Application, type InsertApplication, type Adoption, type InsertAdoption, type Note, type InsertNote } from "@shared/schema";
+import { users, animals, organizations, memberships, people, medicalSchedule, applications, intakes, adoptions, fosterAssignments, notes, photos, type User, type InsertUser, type Animal, type InsertAnimal, type Organization, type InsertOrganization, type Membership, type InsertMembership, type Person, type InsertPerson, type MedicalSchedule, type InsertMedicalSchedule, type Application, type InsertApplication, type Adoption, type InsertAdoption, type Note, type InsertNote, type Photo, type InsertPhoto } from "@shared/schema";
 import { eq, and, desc, lte, gte } from "drizzle-orm";
 
 export interface IStorage {
@@ -43,6 +43,10 @@ export interface IStorage {
   // Notes
   getNotes(subjectType: string, subjectId: string): Promise<Note[]>;
   createNote(note: InsertNote): Promise<Note>;
+  
+  // Photos
+  getPhotos(subjectType: string, subjectId: string): Promise<Photo[]>;
+  createPhoto(photo: InsertPhoto): Promise<Photo>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -187,6 +191,15 @@ export class DatabaseStorage implements IStorage {
   async createNote(note: InsertNote): Promise<Note> {
     const [n] = await db.insert(notes).values(note).returning();
     return n;
+  }
+
+  async getPhotos(subjectType: string, subjectId: string): Promise<Photo[]> {
+    return await db.select().from(photos).where(and(eq(photos.subjectType, subjectType), eq(photos.subjectId, subjectId))).orderBy(desc(photos.createdAt));
+  }
+
+  async createPhoto(photo: InsertPhoto): Promise<Photo> {
+    const [p] = await db.insert(photos).values(photo).returning();
+    return p;
   }
 }
 

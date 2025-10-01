@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import { authenticateUser, hashPassword } from "./auth";
-import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema } from "@shared/schema";
+import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema } from "@shared/schema";
 import Stripe from "stripe";
 import { z } from "zod";
 
@@ -232,9 +232,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Note routes
-  app.get("/api/v1/notes/:subjectType/:subjectId", requireAuth, async (req, res) => {
+  app.get("/api/v1/notes/:subjectType/:subjectId", requireAuth, requireOrg, async (req, res) => {
     try {
       const { subjectType, subjectId } = req.params;
+      
+      if (subjectType === 'animal') {
+        const animal = await storage.getAnimal(subjectId, req.session.organizationId!);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found in your organization" });
+        }
+      }
+      
       const notesList = await storage.getNotes(subjectType, subjectId);
       res.json(notesList);
     } catch (error: any) {
@@ -242,11 +250,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/v1/notes", requireAuth, async (req, res) => {
+  app.post("/api/v1/notes", requireAuth, requireOrg, async (req, res) => {
     try {
       const data = insertNoteSchema.parse({ ...req.body, authorId: req.session.userId });
+      
+      if (data.subjectType === 'animal') {
+        const animal = await storage.getAnimal(data.subjectId, req.session.organizationId!);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found in your organization" });
+        }
+      }
+      
       const note = await storage.createNote(data);
       res.json(note);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Photo routes
+  app.get("/api/v1/photos/:subjectType/:subjectId", requireAuth, requireOrg, async (req, res) => {
+    try {
+      const { subjectType, subjectId } = req.params;
+      
+      if (subjectType === 'animal') {
+        const animal = await storage.getAnimal(subjectId, req.session.organizationId!);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found in your organization" });
+        }
+      }
+      
+      const photosList = await storage.getPhotos(subjectType, subjectId);
+      res.json(photosList);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/v1/photos", requireAuth, requireOrg, async (req, res) => {
+    try {
+      const data = insertPhotoSchema.parse({ ...req.body, authorId: req.session.userId });
+      
+      if (data.subjectType === 'animal') {
+        const animal = await storage.getAnimal(data.subjectId, req.session.organizationId!);
+        if (!animal) {
+          return res.status(404).json({ message: "Animal not found in your organization" });
+        }
+      }
+      
+      const photo = await storage.createPhoto(data);
+      res.json(photo);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
