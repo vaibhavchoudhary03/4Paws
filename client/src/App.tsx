@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import AnimalsIndex from "@/pages/animals/index";
+import AnimalDetail from "@/pages/animals/[id]";
 import IntakeWizard from "@/pages/intake/wizard";
 import MedicalIndex from "@/pages/medical/index";
 import AdoptionsPipeline from "@/pages/adoptions/pipeline";
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/animals/:id" component={AnimalDetail} />
       <Route path="/animals" component={AnimalsIndex} />
       <Route path="/intake" component={IntakeWizard} />
       <Route path="/medical" component={MedicalIndex} />
