@@ -3,46 +3,64 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MetricCard } from "@/components/ui/metric-card";
-import { TrendingUp, Clock, Heart, Activity, BarChart3, FileText, Download } from "lucide-react";
+import { TrendingUp, Clock, Heart, Activity, BarChart3, FileText, Download, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+interface ReportMetrics {
+  liveReleaseRate: string;
+  avgLengthOfStay: string;
+  totalAdoptionsThisMonth: number;
+  medicalCompliance: string;
+}
 
 export default function ReportsIndex() {
+  const { data: metrics, isLoading } = useQuery<ReportMetrics>({
+    queryKey: ["/api/v1/reports/metrics"],
+  });
+
   return (
     <AppLayout title="Reports & Analytics" subtitle="Track outcomes, compliance, and key metrics">
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <MetricCard
-          title="Live Release Rate"
-          value="94.2%"
-          icon={TrendingUp}
-          iconColor="text-success"
-          trend={{ value: "+2.3% vs last month", positive: true }}
-          testId="metric-release-rate"
-        />
-        <MetricCard
-          title="Avg Length of Stay"
-          value="18 days"
-          icon={Clock}
-          iconColor="text-primary"
-          trend={{ value: "-3 days vs last month", positive: true }}
-          testId="metric-los"
-        />
-        <MetricCard
-          title="Total Adoptions"
-          value="156"
-          icon={Heart}
-          iconColor="text-destructive"
-          trend={{ value: "This month" }}
-          testId="metric-adoptions"
-        />
-        <MetricCard
-          title="Medical Compliance"
-          value="97.8%"
-          icon={Activity}
-          iconColor="text-warning"
-          trend={{ value: "Tasks completed on time" }}
-          testId="metric-compliance"
-        />
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12 mb-6">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+          <MetricCard
+            title="Live Release Rate"
+            value={metrics?.liveReleaseRate || "0.0%"}
+            icon={TrendingUp}
+            iconColor="text-success"
+            trend={{ value: "Adoptions, transfers, RTOs" }}
+            testId="metric-release-rate"
+          />
+          <MetricCard
+            title="Avg Length of Stay"
+            value={metrics?.avgLengthOfStay || "0 days"}
+            icon={Clock}
+            iconColor="text-primary"
+            trend={{ value: "From intake to outcome" }}
+            testId="metric-los"
+          />
+          <MetricCard
+            title="Total Adoptions"
+            value={metrics?.totalAdoptionsThisMonth?.toString() || "0"}
+            icon={Heart}
+            iconColor="text-destructive"
+            trend={{ value: "This month" }}
+            testId="metric-adoptions"
+          />
+          <MetricCard
+            title="Medical Compliance"
+            value={metrics?.medicalCompliance || "100.0%"}
+            icon={Activity}
+            iconColor="text-warning"
+            trend={{ value: "Tasks completed" }}
+            testId="metric-compliance"
+          />
+        </div>
+      )}
 
       {/* Canned Reports */}
       <Card className="mb-6" data-testid="card-canned-reports">

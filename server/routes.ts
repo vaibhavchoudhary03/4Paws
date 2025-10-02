@@ -2,8 +2,10 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
+import { db } from "./db";
 import { authenticateUser, hashPassword } from "./auth";
-import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema } from "@shared/schema";
+import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema, outcomes, animals, adoptions as adoptionsTable, medicalSchedule } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { z } from "zod";
 
@@ -372,6 +374,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(adoption);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Reports metrics
+  app.get("/api/v1/reports/metrics", requireAuth, requireOrg, async (req, res) => {
+    try {
+      const organizationId = req.session.organizationId!;
+      
+      // Get outcomes with animal data for calculations
+      const outcomesData = await db.select()
+        .from(outcomes)
+        .innerJoin(animals, eq(outcomes.animalId, animals.id))
+        .where(eq(animals.organizationId, organizationId));
+      
+      // Get adoptions for this month calculation
+      const adoptionsData = await db.select()
+        .from(adoptionsTable)
+        .innerJoin(animals, eq(adoptionsTable.animalId, animals.id))
+        .where(eq(animals.organizationId, organizationId));
+      
+      // Get medical tasks for compliance calculation
+      const medicalTasksData = await db.select()
+        .from(medicalSchedule)
+        .innerJoin(animals, eq(medicalSchedule.animalId, animals.id))
+        .where(eq(animals.organizationId, organizationId));
+      
+      // Calculate Live Release Rate (positive outcomes / total outcomes * 100)
+      const positiveOutcomes = outcomesData.filter((o: any) => 
+        ['adoption', 'transfer_out', 'return_to_owner'].includes(o.outcomes.type)
+      ).length;
+      const liveReleaseRate = outcomesData.length > 0 
+        ? ((positiveOutcomes / outcomesData.length) * 100).toFixed(1)
+        : "0.0";
+      
+      // Calculate Average Length of Stay
+      const outcomesWithDates = outcomesData.filter((o: any) => o.animals.intakeDate && o.outcomes.date);
+      const totalDays = outcomesWithDates.reduce((sum: number, o: any) => {
+        const intake = new Date(o.animals.intakeDate);
+        const outcome = new Date(o.outcomes.date);
+        const days = Math.floor((outcome.getTime() - intake.getTime()) / (1000 * 60 * 60 * 24));
+        return sum + days;
+      }, 0);
+      const avgLOS = outcomesWithDates.length > 0 
+        ? Math.round(totalDays / outcomesWithDates.length)
+        : 0;
+      
+      // Calculate Total Adoptions this month
+      const now = new Date();
+      const thisMonth = adoptionsData.filter((a: any) => {
+        const adoptionDate = new Date(a.adoptions.date);
+        return adoptionDate.getMonth() === now.getMonth() && 
+               adoptionDate.getFullYear() === now.getFullYear();
+      }).length;
+      
+      // Calculate Medical Compliance (simplified - all done tasks counted as on time)
+      const doneTasks = medicalTasksData.filter((t: any) => t.medicalSchedule.status === 'done');
+      const totalTasks = medicalTasksData.length;
+      const medicalCompliance = totalTasks > 0 
+        ? ((doneTasks.length / totalTasks) * 100).toFixed(1)
+        : "100.0";
+      
+      res.json({
+        liveReleaseRate: `${liveReleaseRate}%`,
+        avgLengthOfStay: `${avgLOS} days`,
+        totalAdoptionsThisMonth: thisMonth,
+        medicalCompliance: `${medicalCompliance}%`,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
