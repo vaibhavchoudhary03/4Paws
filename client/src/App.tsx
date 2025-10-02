@@ -14,6 +14,7 @@ import AdoptionsPipeline from "@/pages/adoptions/pipeline";
 import FostersPortal from "@/pages/fosters/portal";
 import VolunteersPortal from "@/pages/volunteers/portal";
 import ReportsIndex from "@/pages/reports/index";
+import PeopleIndex from "@/pages/people/index";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/adoptions" component={AdoptionsPipeline} />
       <Route path="/fosters" component={FostersPortal} />
       <Route path="/volunteers" component={VolunteersPortal} />
+      <Route path="/people" component={PeopleIndex} />
       <Route path="/reports" component={ReportsIndex} />
       <Route component={NotFound} />
     </Switch>

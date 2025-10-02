@@ -53,9 +53,9 @@ export default function PeopleIndex() {
     resolver: zodResolver(insertPersonSchema.omit({ organizationId: true, flags: true })),
     defaultValues: {
       name: "",
-      email: null,
-      phone: null,
-      address: null,
+      email: "",
+      phone: "",
+      address: "",
       type: "adopter",
     },
   });
@@ -117,14 +117,7 @@ export default function PeopleIndex() {
   return (
     <AppLayout title="People" subtitle="Manage adopters, fosters, volunteers, donors, and staff">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Users className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold" data-testid="heading-people">People</h1>
-              <p className="text-muted-foreground">Manage adopters, fosters, volunteers, donors, and staff</p>
-            </div>
-          </div>
+        <div className="flex items-center justify-end">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-add-person">
@@ -182,7 +175,7 @@ export default function PeopleIndex() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" data-testid="input-person-email" placeholder="john@example.com" />
+                          <Input {...field} value={field.value || ""} type="email" data-testid="input-person-email" placeholder="john@example.com" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -195,7 +188,7 @@ export default function PeopleIndex() {
                       <FormItem>
                         <FormLabel>Phone</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-person-phone" placeholder="(555) 555-5555" />
+                          <Input {...field} value={field.value || ""} data-testid="input-person-phone" placeholder="(555) 555-5555" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -208,7 +201,7 @@ export default function PeopleIndex() {
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-person-address" placeholder="123 Main St, City, State ZIP" />
+                          <Input {...field} value={field.value || ""} data-testid="input-person-address" placeholder="123 Main St, City, State ZIP" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -374,6 +367,6 @@ export default function PeopleIndex() {
           )}
         </Tabs>
       </div>
-    </AppShell>
+    </AppLayout>
   );
 }
