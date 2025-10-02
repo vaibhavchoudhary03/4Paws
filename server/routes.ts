@@ -515,15 +515,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const animals = await storage.getAnimals(req.session.organizationId!);
       const availableAnimals = animals.filter(a => a.status === 'available');
       
-      // Generate basic XML feed structure
+      // Helper function to calculate age from DOB
+      const calculateAge = (dob: Date | string | null): string => {
+        if (!dob) return 'Unknown';
+        const dobDate = typeof dob === 'string' ? new Date(dob) : dob;
+        
+        // Check for Invalid Date
+        if (Number.isNaN(dobDate.getTime())) return 'Unknown';
+        
+        const now = new Date();
+        const years = Math.floor((now.getTime() - dobDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+        const months = Math.floor((now.getTime() - dobDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000));
+        
+        if (years > 0) return `${years} year${years > 1 ? 's' : ''}`;
+        if (months > 0) return `${months} month${months > 1 ? 's' : ''}`;
+        return 'Less than 1 month';
+      };
+      
+      // Helper function to escape XML special characters
+      const escapeXml = (str: string | null | undefined): string => {
+        if (!str) return '';
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+      };
+      
+      // Generate enhanced XML feed structure
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<pets>\n';
       availableAnimals.forEach(animal => {
         xml += `  <pet>\n`;
-        xml += `    <id>${animal.id}</id>\n`;
-        xml += `    <name>${animal.name}</name>\n`;
-        xml += `    <species>${animal.species}</species>\n`;
-        xml += `    <breed>${animal.breed || 'Unknown'}</breed>\n`;
-        xml += `    <sex>${animal.sex || 'Unknown'}</sex>\n`;
+        xml += `    <id>${escapeXml(animal.id)}</id>\n`;
+        xml += `    <name>${escapeXml(animal.name)}</name>\n`;
+        xml += `    <species>${escapeXml(animal.species)}</species>\n`;
+        xml += `    <breed>${escapeXml(animal.breed) || 'Unknown'}</breed>\n`;
+        xml += `    <sex>${escapeXml(animal.sex) || 'Unknown'}</sex>\n`;
+        xml += `    <age>${calculateAge(animal.dobEst)}</age>\n`;
+        xml += `    <color>${escapeXml(animal.color) || 'Unknown'}</color>\n`;
+        
+        if (animal.description) {
+          xml += `    <description><![CDATA[${animal.description}]]></description>\n`;
+        }
+        
+        if (animal.microchip) {
+          xml += `    <microchip>${escapeXml(animal.microchip)}</microchip>\n`;
+        }
+        
+        if (animal.locationId) {
+          xml += `    <location>${escapeXml(animal.locationId)}</location>\n`;
+        }
+        
+        if (animal.photos && animal.photos.length > 0) {
+          xml += `    <photos>\n`;
+          animal.photos.forEach(photo => {
+            // Safely extract URL whether photo is a string or object
+            const photoUrl = typeof photo === 'string' ? photo : (photo as any).url || String(photo);
+            if (photoUrl && photoUrl !== '[object Object]') {
+              xml += `      <photo>${escapeXml(photoUrl)}</photo>\n`;
+            }
+          });
+          xml += `    </photos>\n`;
+        }
+        
         xml += `  </pet>\n`;
       });
       xml += '</pets>';
