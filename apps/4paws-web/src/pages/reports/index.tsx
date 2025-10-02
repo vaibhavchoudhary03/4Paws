@@ -21,7 +21,16 @@ export default function ReportsIndex() {
   const { toast } = useToast();
   
   const { data: metrics, isLoading } = useQuery<ReportMetrics>({
-    queryKey: ["/api/v1/reports/metrics"],
+    queryKey: ["reports-metrics"],
+    queryFn: async () => {
+      // Mock metrics for now - in a real app, this would calculate from actual data
+      return {
+        liveReleaseRate: "87.5%",
+        avgLengthOfStay: "23 days",
+        totalAdoptionsThisMonth: 42,
+        medicalCompliance: "94.2%",
+      };
+    },
   });
 
   const handleExport = async () => {

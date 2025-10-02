@@ -53,22 +53,26 @@ export default function IntakeWizard() {
 
   const createAnimalMutation = useMutation({
     mutationFn: async (data: IntakeFormData) => {
-      return await apiRequest("/api/v1/animals", "POST", {
+      const { animalsApi } = await import("../../lib/api");
+      return await animalsApi.create({
+        organization_id: '00000000-0000-0000-0000-000000000001',
         name: data.name,
         species: data.species,
         breed: data.breed || null,
-        sex: data.sex || null,
+        gender: data.sex || null,
         color: data.color || null,
-        dobEst: data.dobEst ? new Date(data.dobEst).toISOString() : null,
-        intakeDate: new Date(data.intakeDate).toISOString(),
+        age: data.dobEst ? Math.floor((Date.now() - new Date(data.dobEst).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+        intake_date: new Date(data.intakeDate).toISOString(),
         status: data.status,
-        microchip: data.microchip || null,
+        microchip_id: data.microchip || null,
         description: data.description || null,
-        attributes: data.attributes,
+        behavior_notes: data.attributes.intakeNotes || null,
+        is_spayed_neutered: false,
+        is_vaccinated: false,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/animals"] });
+      queryClient.invalidateQueries({ queryKey: ["animals"] });
       toast({
         title: "Success!",
         description: "Animal has been added to the system.",

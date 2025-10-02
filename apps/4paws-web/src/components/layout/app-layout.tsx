@@ -9,9 +9,10 @@ interface AppLayoutProps {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
+  actions?: React.ReactNode;
 }
 
-export default function AppLayout({ children, title, subtitle }: AppLayoutProps) {
+export default function AppLayout({ children, title, subtitle, actions }: AppLayoutProps) {
   const isMobile = useIsMobile();
 
   return (
@@ -34,6 +35,11 @@ export default function AppLayout({ children, title, subtitle }: AppLayoutProps)
               </div>
             </div>
             <div className="flex items-center space-x-2 lg:space-x-4">
+              {actions && (
+                <div className="mr-4">
+                  {actions}
+                </div>
+              )}
               <Button variant="ghost" size="icon" className="relative" data-testid="button-notifications">
                 <Bell className="w-6 h-6 text-muted-foreground" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>

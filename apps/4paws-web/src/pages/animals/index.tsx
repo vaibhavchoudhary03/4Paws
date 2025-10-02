@@ -39,6 +39,8 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { useState, useMemo } from "react";
 import AppLayout from "../../components/layout/app-layout";
 import { animalsApi } from "../../lib/api";
 import { Card, CardContent } from "../../components/ui/card";
@@ -49,6 +51,11 @@ import { Search, Filter, Plus, Calendar, MapPin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 export default function AnimalsIndex() {
+  const [, setLocation] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [speciesFilter, setSpeciesFilter] = useState("all-species");
+  const [statusFilter, setStatusFilter] = useState("all-status");
+
   // ============================================================================
   // DATA FETCHING - Load all animals for current organization
   // ============================================================================
@@ -68,10 +75,58 @@ export default function AnimalsIndex() {
    * Data shared with dashboard and other pages.
    * Invalidated after animal updates (create, edit, delete).
    */
-  const { data: animals = [], isLoading } = useQuery({
+  const { data: animals = [], isLoading, error } = useQuery({
     queryKey: ["animals"],
     queryFn: animalsApi.getAll,
   });
+
+  // Debug logging (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Animals Index Debug:', {
+      animalsCount: animals.length,
+      isLoading,
+      error,
+      searchTerm,
+      speciesFilter,
+      statusFilter,
+      filteredCount: filteredAnimals.length
+    });
+  }
+
+  // ============================================================================
+  // FILTERING LOGIC - Client-side filtering of animals
+  // ============================================================================
+  
+  /**
+   * Filter animals based on search term and filters
+   * 
+   * FILTERS APPLIED:
+   * 1. Search term: Matches name or microchip_id
+   * 2. Species filter: Matches species field
+   * 3. Status filter: Matches status field
+   * 
+   * PERFORMANCE:
+   * Uses useMemo to prevent unnecessary recalculations
+   * Only recalculates when animals data or filter values change
+   */
+  const filteredAnimals = useMemo(() => {
+    return animals.filter((animal: any) => {
+      // Search filter
+      const matchesSearch = searchTerm === "" || 
+        animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (animal.microchip_id && animal.microchip_id.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      // Species filter
+      const matchesSpecies = speciesFilter === "all-species" || 
+        animal.species === speciesFilter;
+      
+      // Status filter
+      const matchesStatus = statusFilter === "all-status" || 
+        animal.status === statusFilter;
+      
+      return matchesSearch && matchesSpecies && matchesStatus;
+    });
+  }, [animals, searchTerm, speciesFilter, statusFilter]);
 
   // ============================================================================
   // HELPER FUNCTIONS - UI utilities for consistent styling
@@ -102,8 +157,28 @@ export default function AnimalsIndex() {
     }
   };
 
+  // Show error state if there are errors
+  if (error) {
+    return (
+      <AppLayout title="Animals" subtitle="Error loading animals">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-8 h-8 text-destructive">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-foreground mb-2">Error loading animals</p>
+            <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
+
   return (
-    <AppLayout title="Animals" subtitle={`${animals.length} animals in care`}>
+    <AppLayout title="Animals" subtitle={`${filteredAnimals.length} of ${animals.length} animals in care`}>
       {/* ========================================================================
           SEARCH AND FILTER BAR - Tools to narrow down animal list
           ======================================================================== */}
@@ -148,6 +223,8 @@ export default function AnimalsIndex() {
                 placeholder="Search by name or ID..." 
                 className="pl-10"
                 data-testid="input-search-animals"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             
@@ -163,7 +240,7 @@ export default function AnimalsIndex() {
              * TODO: Add more species (rabbits, birds, etc.)
              * TODO: Connect to filter state
              */}
-            <Select defaultValue="all-species">
+            <Select value={speciesFilter} onValueChange={setSpeciesFilter}>
               <SelectTrigger className="w-full lg:w-[180px]" data-testid="select-species">
                 <SelectValue placeholder="All Species" />
               </SelectTrigger>
@@ -190,7 +267,7 @@ export default function AnimalsIndex() {
              * 
              * TODO: Connect to filter state
              */}
-            <Select defaultValue="all-status">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full lg:w-[180px]" data-testid="select-status">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
@@ -211,7 +288,10 @@ export default function AnimalsIndex() {
              * TODO: Connect navigation handler
              * TODO: Check user permissions (staff/admin only)
              */}
-            <Button data-testid="button-add-animal">
+            <Button 
+              data-testid="button-add-animal"
+              onClick={() => setLocation("/animals/create")}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Animal
             </Button>
@@ -251,7 +331,7 @@ export default function AnimalsIndex() {
       ) : 
       
       /* STATE 2: EMPTY - No animals in system */
-      animals.length === 0 ? (
+      filteredAnimals.length === 0 ? (
         /**
          * Empty state message
          * 
@@ -301,8 +381,13 @@ export default function AnimalsIndex() {
          * - Intake date
          */
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {animals.map((animal: any) => (
-            <Card key={animal.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" data-testid={`card-animal-${animal.id}`}>
+          {filteredAnimals.map((animal: any) => (
+            <Card 
+              key={animal.id} 
+              className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" 
+              data-testid={`card-animal-${animal.id}`}
+              onClick={() => setLocation(`/animals/${animal.id}`)}
+            >
               {/* PHOTO SECTION */}
               {/**
                * Animal photo area

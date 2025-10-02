@@ -16,13 +16,14 @@ export default function AdoptionsPipeline() {
   const queryClient = useQueryClient();
 
   const { data: applications = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/v1/applications"],
+    queryKey: ["adoptions"],
+    queryFn: applicationsApi.getAll,
   });
 
   const updateApplicationMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: any }) => applicationsApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["adoptions"] });
       toast({
         title: "Application updated",
         description: "Status has been changed successfully",

@@ -22,7 +22,11 @@ export default function VolunteerPortal() {
   const queryClient = useQueryClient();
 
   const { data: allAnimals = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/v1/animals"],
+    queryKey: ["animals"],
+    queryFn: async () => {
+      const { animalsApi } = await import("../../lib/api");
+      return await animalsApi.getAll();
+    },
   });
 
   const animals = allAnimals.filter((a: any) => 

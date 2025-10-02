@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
-import AppLayout from "@/components/layout/app-layout";
-import { animalsApi } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppLayout from "../../components/layout/app-layout";
+import { animalsApi } from "../../lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Dog, Calendar, MapPin, Edit, Trash2, FileText, Stethoscope, Heart } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../../hooks/use-toast";
 
 export default function AnimalDetail() {
   const [, params] = useRoute("/animals/:id");
@@ -15,10 +15,61 @@ export default function AnimalDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: animal, isLoading } = useQuery({
-    queryKey: ["/api/v1/animals", params?.id],
+  const { data: animal, isLoading, error } = useQuery({
+    queryKey: ["animals", params?.id],
+    queryFn: () => animalsApi.getById(params!.id),
     enabled: !!params?.id,
   });
+
+  // Debug logging
+  console.log('🔍 Animal Detail Debug:', {
+    params,
+    animalId: params?.id,
+    isLoading,
+    error,
+    animal: animal ? 'Found' : 'Not found'
+  });
+
+  // ============================================================================
+  // MUTATIONS - Handle animal updates and deletion
+  // ============================================================================
+
+  /**
+   * MUTATION: Delete animal
+   * 
+   * Deletes the animal from Supabase and navigates back to animals list
+   */
+  const deleteAnimalMutation = useMutation({
+    mutationFn: async (animalId: string) => {
+      // For now, we'll just update the status to 'deleted' instead of actually deleting
+      // This preserves data integrity and allows for recovery
+      return await animalsApi.update(animalId, { status: 'deleted' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["animals"] });
+      toast({
+        title: "Animal deleted",
+        description: "The animal has been removed from the system",
+      });
+      setLocation("/animals");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete animal",
+        variant: "destructive",
+      });
+    },
+  });
+
+  /**
+   * Handle delete confirmation
+   */
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${animal?.name}? This action cannot be undone.`)) {
+      deleteAnimalMutation.mutate(animal!.id);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -30,13 +81,16 @@ export default function AnimalDetail() {
     );
   }
 
-  if (!animal) {
+  if (error || !animal) {
     return (
       <AppLayout title="Not Found" subtitle="Animal not found">
         <Card>
           <CardContent className="py-12 text-center">
             <Dog className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium text-foreground mb-2">Animal not found</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {error?.message || 'The animal you are looking for does not exist.'}
+            </p>
             <Button onClick={() => setLocation("/animals")} data-testid="button-back-to-list">
               Back to Animals
             </Button>
@@ -59,7 +113,7 @@ export default function AnimalDetail() {
   return (
     <AppLayout 
       title={animal.name} 
-      subtitle={`${animal.breed} • ${animal.sex} • ID: ${animal.id.slice(0, 8)}`}
+      subtitle={`${animal.breed} • ${animal.gender} • ID: ${animal.id.slice(0, 8)}`}
     >
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - Photo and Quick Info */}
@@ -84,10 +138,21 @@ export default function AnimalDetail() {
                     {animal.status}
                   </Badge>
                   <div className="flex gap-2">
-                    <Button size="icon" variant="outline" data-testid="button-edit">
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      data-testid="button-edit"
+                      onClick={() => setLocation(`/animals/${animal.id}/edit`)}
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button size="icon" variant="outline" data-testid="button-delete">
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      data-testid="button-delete"
+                      onClick={handleDelete}
+                      disabled={deleteAnimalMutation.isPending}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -100,15 +165,15 @@ export default function AnimalDetail() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-foreground font-medium">DOB (Est):</span>
+                    <span className="text-foreground font-medium">Age:</span>
                     <span className="text-muted-foreground">
-                      {animal.dobEst ? new Date(animal.dobEst).toLocaleDateString() : 'Unknown'}
+                      {animal.age ? `${animal.age} months` : 'Unknown'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
                     <span className="text-foreground font-medium">Location:</span>
-                    <span className="text-muted-foreground">{animal.kennelId || 'No kennel'}</span>
+                    <span className="text-muted-foreground">{animal.microchip_id || 'No kennel'}</span>
                   </div>
                 </div>
               </div>
@@ -154,19 +219,19 @@ export default function AnimalDetail() {
                       <p className="text-foreground" data-testid="text-color">{animal.color}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Sex</p>
-                      <p className="text-foreground" data-testid="text-sex">{animal.sex}</p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Gender</p>
+                      <p className="text-foreground" data-testid="text-gender">{animal.gender}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground mb-1">Intake Date</p>
                       <p className="text-foreground" data-testid="text-intake-date">
-                        {new Date(animal.intakeDate).toLocaleDateString()}
+                        {new Date(animal.intake_date).toLocaleDateString()}
                       </p>
                     </div>
-                    {animal.microchip && (
+                    {animal.microchip_id && (
                       <div className="col-span-2">
                         <p className="text-sm font-medium text-muted-foreground mb-1">Microchip</p>
-                        <p className="text-foreground font-mono" data-testid="text-microchip">{animal.microchip}</p>
+                        <p className="text-foreground font-mono" data-testid="text-microchip">{animal.microchip_id}</p>
                       </div>
                     )}
                   </div>

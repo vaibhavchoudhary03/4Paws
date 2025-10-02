@@ -16,13 +16,14 @@ export default function MedicalIndex() {
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
   
   const { data: tasks = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/v1/medical/schedule"],
+    queryKey: ["medical-tasks"],
+    queryFn: medicalApi.getTasks,
   });
 
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: any }) => medicalApi.updateTask(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/medical/schedule"] });
+      queryClient.invalidateQueries({ queryKey: ["medical-tasks"] });
       toast({
         title: "Task updated",
         description: "Medical task has been marked as complete",
@@ -35,7 +36,7 @@ export default function MedicalIndex() {
       return await apiRequest("/api/v1/medical/schedule/batch", "POST", { taskIds, updates });
     },
     onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/medical/schedule"] });
+      queryClient.invalidateQueries({ queryKey: ["medical-tasks"] });
       setSelectedTasks(new Set());
       toast({
         title: "Tasks updated",
@@ -98,12 +99,12 @@ export default function MedicalIndex() {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
   const overdueTasks = tasks.filter((t: any) => 
-    t.status === 'scheduled' && new Date(t.dueDate) < today
+    !t.is_completed && new Date(t.dueDate) < today
   );
   
   const todayTasks = tasks.filter((t: any) => {
     const dueDate = new Date(t.dueDate);
-    return t.status === 'scheduled' && 
+    return !t.is_completed && 
            dueDate.getDate() === today.getDate() &&
            dueDate.getMonth() === today.getMonth() &&
            dueDate.getFullYear() === today.getFullYear();
@@ -204,10 +205,10 @@ export default function MedicalIndex() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <p className="font-medium text-foreground" data-testid={`text-animal-${task.animal?.name}`}>
-                                {task.animal?.name || 'Unknown'}
+                              <p className="font-medium text-foreground" data-testid={`text-animal-${task.animalName}`}>
+                                {task.animalName || 'Unknown'}
                               </p>
-                              <p className="text-sm text-muted-foreground">{task.type} - {task.notes}</p>
+                              <p className="text-sm text-muted-foreground">{task.type} - {task.description}</p>
                             </div>
                             <Badge variant="destructive" data-testid={`badge-overdue-${task.id}`}>
                               Overdue
@@ -274,8 +275,8 @@ export default function MedicalIndex() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <p className="font-medium text-foreground">{task.animal?.name || 'Unknown'}</p>
-                              <p className="text-sm text-muted-foreground">{task.type} - {task.notes}</p>
+                              <p className="font-medium text-foreground">{task.animalName || 'Unknown'}</p>
+                              <p className="text-sm text-muted-foreground">{task.type} - {task.description}</p>
                             </div>
                             <Badge className="bg-success/10 text-success">Due today</Badge>
                           </div>

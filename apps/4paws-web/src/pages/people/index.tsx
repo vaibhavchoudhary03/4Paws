@@ -51,7 +51,25 @@ export default function PeopleIndex() {
   const { toast } = useToast();
 
   const { data: people = [], isLoading } = useQuery<Person[]>({
-    queryKey: ["/api/v1/people"],
+    queryKey: ["people"],
+    queryFn: async () => {
+      const { peopleApi } = await import("../../lib/api");
+      const users = await peopleApi.getAll();
+      
+      // Map users to people format, converting role to type
+      return users.map(user => ({
+        id: user.id,
+        name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+        email: user.email,
+        phone: user.profile?.phone || '',
+        address: user.profile?.address || '',
+        type: user.role as "adopter" | "foster" | "volunteer" | "donor" | "staff",
+        organizationId: user.organization_id,
+        flags: user.profile || {},
+        createdAt: new Date(user.created_at),
+        updatedAt: new Date(user.updated_at),
+      }));
+    },
   });
 
   const createPersonMutation = useMutation({

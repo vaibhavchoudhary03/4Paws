@@ -10,8 +10,27 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 export default function FostersIndex() {
   const { data: fosters = [], isLoading } = useQuery({
-    queryKey: ["/api/v1/people"],
-    select: (data: any[]) => data.filter(p => p.type === 'foster'),
+    queryKey: ["people"],
+    queryFn: async () => {
+      const { peopleApi } = await import("../../lib/api");
+      const users = await peopleApi.getAll();
+      
+      // Map users to people format and filter for fosters
+      return users
+        .map(user => ({
+          id: user.id,
+          name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+          email: user.email,
+          phone: user.profile?.phone || '',
+          address: user.profile?.address || '',
+          type: user.role as "adopter" | "foster" | "volunteer" | "donor" | "staff",
+          organizationId: user.organization_id,
+          flags: user.profile || {},
+          createdAt: new Date(user.created_at),
+          updatedAt: new Date(user.updated_at),
+        }))
+        .filter(p => p.type === 'foster');
+    },
   });
 
   return (

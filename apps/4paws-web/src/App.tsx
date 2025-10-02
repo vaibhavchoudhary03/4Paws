@@ -52,6 +52,8 @@ import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import AnimalsIndex from "./pages/animals/index";
 import AnimalDetail from "./pages/animals/[id]";
+import CreateAnimal from "./pages/animals/create";
+import EditAnimal from "./pages/animals/edit";
 import IntakeWizard from "./pages/intake/wizard";
 import MedicalIndex from "./pages/medical/index";
 import AdoptionsPipeline from "./pages/adoptions/pipeline";
@@ -119,6 +121,8 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       
       {/* Animal management routes - Core functionality */}
+      <Route path="/animals/create" component={CreateAnimal} />
+      <Route path="/animals/:id/edit" component={EditAnimal} />
       <Route path="/animals/:id" component={AnimalDetail} />  {/* Must be before /animals */}
       <Route path="/animals" component={AnimalsIndex} />
       <Route path="/intake" component={IntakeWizard} />
