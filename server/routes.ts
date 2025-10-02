@@ -4,7 +4,7 @@ import session from "express-session";
 import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateUser, hashPassword } from "./auth";
-import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema, outcomes, animals, adoptions as adoptionsTable, medicalSchedule } from "@shared/schema";
+import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema, outcomes, animals, adoptions as adoptionsTable, medicalSchedule, people } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -441,6 +441,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalAdoptionsThisMonth: thisMonth,
         medicalCompliance: `${medicalCompliance}%`,
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // CSV Export
+  app.get("/api/v1/reports/export/csv", requireAuth, requireOrg, async (req, res) => {
+    try {
+      const { entity } = req.query;
+      const organizationId = req.session.organizationId!;
+      
+      let csvData = '';
+      let filename = 'export.csv';
+      
+      if (entity === 'animals') {
+        const animals = await storage.getAnimals(organizationId);
+        filename = `animals_${new Date().toISOString().split('T')[0]}.csv`;
+        csvData = 'ID,Name,Species,Breed,Sex,Status,Intake Date,Location\n';
+        animals.forEach(animal => {
+          const intakeDate = animal.intakeDate ? new Date(animal.intakeDate).toLocaleDateString() : '';
+          csvData += `"${animal.id}","${animal.name}","${animal.species}","${animal.breed || ''}","${animal.sex || ''}","${animal.status}","${intakeDate}","${animal.locationId || ''}"\n`;
+        });
+      } else if (entity === 'people') {
+        const people = await storage.getPeople(organizationId);
+        filename = `people_${new Date().toISOString().split('T')[0]}.csv`;
+        csvData = 'ID,Name,Type,Email,Phone,Address\n';
+        people.forEach(person => {
+          csvData += `"${person.id}","${person.name}","${person.type}","${person.email || ''}","${person.phone || ''}","${person.address || ''}"\n`;
+        });
+      } else if (entity === 'adoptions') {
+        const adoptionsData = await db.select()
+          .from(adoptionsTable)
+          .innerJoin(animals, eq(adoptionsTable.animalId, animals.id))
+          .innerJoin(people, eq(adoptionsTable.adopterId, people.id))
+          .where(eq(animals.organizationId, organizationId));
+        
+        filename = `adoptions_${new Date().toISOString().split('T')[0]}.csv`;
+        csvData = 'Adoption ID,Animal Name,Adopter Name,Date,Fee,Donation\n';
+        adoptionsData.forEach((row: any) => {
+          const date = new Date(row.adoptions.date).toLocaleDateString();
+          const fee = (row.adoptions.feeCents / 100).toFixed(2);
+          const donation = row.adoptions.donationCents ? (row.adoptions.donationCents / 100).toFixed(2) : '0.00';
+          csvData += `"${row.adoptions.id}","${row.animals.name}","${row.people.name}","${date}","$${fee}","$${donation}"\n`;
+        });
+      } else if (entity === 'medical') {
+        const medicalTasksData = await db.select()
+          .from(medicalSchedule)
+          .innerJoin(animals, eq(medicalSchedule.animalId, animals.id))
+          .where(eq(animals.organizationId, organizationId));
+        
+        filename = `medical_${new Date().toISOString().split('T')[0]}.csv`;
+        csvData = 'Task ID,Animal Name,Type,Due Date,Status,Notes\n';
+        medicalTasksData.forEach((row: any) => {
+          const dueDate = new Date(row.medicalSchedule.dueDate).toLocaleDateString();
+          csvData += `"${row.medicalSchedule.id}","${row.animals.name}","${row.medicalSchedule.type}","${dueDate}","${row.medicalSchedule.status}","${row.medicalSchedule.notes || ''}"\n`;
+        });
+      } else {
+        return res.status(400).json({ message: "Invalid entity type" });
+      }
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csvData);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

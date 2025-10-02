@@ -1,3 +1,4 @@
+import { useState } from "react";
 import AppLayout from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MetricCard } from "@/components/ui/metric-card";
 import { TrendingUp, Clock, Heart, Activity, BarChart3, FileText, Download, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReportMetrics {
   liveReleaseRate: string;
@@ -14,9 +16,49 @@ interface ReportMetrics {
 }
 
 export default function ReportsIndex() {
+  const [entityType, setEntityType] = useState("animals");
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
+  
   const { data: metrics, isLoading } = useQuery<ReportMetrics>({
     queryKey: ["/api/v1/reports/metrics"],
   });
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const response = await fetch(`/api/v1/reports/export/csv?entity=${entityType}`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${entityType}_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Success",
+        description: `${entityType} exported successfully`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to export data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <AppLayout title="Reports & Analytics" subtitle="Track outcomes, compliance, and key metrics">
@@ -164,15 +206,15 @@ export default function ReportsIndex() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Entity Type</label>
-                <Select defaultValue="animals">
+                <Select value={entityType} onValueChange={setEntityType}>
                   <SelectTrigger data-testid="select-entity">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="animals">Animals</SelectItem>
+                    <SelectItem value="people">People</SelectItem>
                     <SelectItem value="adoptions">Adoptions</SelectItem>
                     <SelectItem value="medical">Medical Records</SelectItem>
-                    <SelectItem value="fosters">Foster Assignments</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -208,9 +250,13 @@ export default function ReportsIndex() {
             </div>
 
             <div className="flex justify-end">
-              <Button data-testid="button-generate-report">
-                <FileText className="w-4 h-4 mr-2" />
-                Generate Report
+              <Button 
+                onClick={handleExport} 
+                disabled={isExporting}
+                data-testid="button-generate-report"
+              >
+                {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                {isExporting ? 'Exporting...' : 'Generate Report'}
               </Button>
             </div>
           </div>
