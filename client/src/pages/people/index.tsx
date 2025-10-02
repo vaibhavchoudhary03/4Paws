@@ -61,7 +61,7 @@ export default function PeopleIndex() {
   });
 
   const onSubmit = (data: InsertPerson) => {
-    createPersonMutation.mutate({ ...data, flags: {} });
+    createPersonMutation.mutate({ ...data, flags: data.flags || {} });
   };
 
   const filteredPeople = people.filter((person) => {
