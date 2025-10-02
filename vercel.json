@@ -4,13 +4,6 @@
     {
       "src": "apps/4paws-api/index.ts",
       "use": "@vercel/node"
-    },
-    {
-      "src": "apps/4paws-web/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
     }
   ],
   "routes": [
@@ -20,7 +13,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "apps/4paws-web/$1"
+      "dest": "apps/4paws-web/index.html"
     }
   ],
   "env": {
