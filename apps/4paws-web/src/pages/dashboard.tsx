@@ -42,11 +42,11 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import AppLayout from "@/components/layout/app-layout";
-import { medicalApi, animalsApi } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import AppLayout from "../components/layout/app-layout";
+import { medicalApi, animalsApi } from "../lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
 import { Dog, Stethoscope, HeartHandshake, HeartPulse, TrendingUp, AlertTriangle, Calendar, CheckCircle } from "lucide-react";
 
 export default function Dashboard() {
@@ -66,8 +66,9 @@ export default function Dashboard() {
    * Data cached by React Query until invalidated.
    * Shared with animals list page (same queryKey).
    */
-  const { data: animals = [] } = useQuery<any[]>({
-    queryKey: ["/api/v1/animals"],
+  const { data: animals = [] } = useQuery({
+    queryKey: ["animals"],
+    queryFn: animalsApi.getAll,
   });
 
   /**
@@ -82,8 +83,9 @@ export default function Dashboard() {
    * Shared with medical dashboard page.
    * Invalidated after task updates.
    */
-  const { data: medicalTasks = [] } = useQuery<any[]>({
-    queryKey: ["/api/v1/medical/schedule"],
+  const { data: medicalTasks = [] } = useQuery({
+    queryKey: ["medical-tasks"],
+    queryFn: medicalApi.getTasks,
   });
 
   // ============================================================================

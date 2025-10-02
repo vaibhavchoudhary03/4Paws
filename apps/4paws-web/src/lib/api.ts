@@ -1,4 +1,5 @@
 import { apiRequest } from "./queryClient";
+import { supabase, type Animal, type MedicalRecord, type Adoption, type Foster, type VolunteerActivity } from "./supabase";
 
 export interface LoginCredentials {
   email: string;
@@ -69,206 +70,203 @@ export const authApi = {
 };
 
 export const animalsApi = {
-  getAll: async () => {
-    // Mock data matching the screenshots
-    return [
-      {
-        id: '1',
-        name: 'Misty',
-        species: 'cat',
-        breed: 'Tuxedo',
-        age: 24,
-        gender: 'female',
-        color: 'Black and White',
-        size: 'medium',
-        status: 'fostered',
-        intakeDate: '2025-07-08',
-        photos: ['https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400'],
-        description: 'Sweet and playful tuxedo cat who loves attention',
-        isSpayedNeutered: true,
-        isVaccinated: true,
-      },
-      {
-        id: '2',
-        name: 'Shadow',
-        species: 'dog',
-        breed: 'German Shepherd',
-        age: 36,
-        gender: 'female',
-        color: 'Black and Tan',
-        size: 'large',
-        status: 'available',
-        intakeDate: '2025-07-16',
-        photos: ['https://images.unsplash.com/photo-1552053831-71594a27632d?w=400'],
-        description: 'Loyal and protective German Shepherd, great with kids',
-        isSpayedNeutered: true,
-        isVaccinated: true,
-      },
-      {
-        id: '3',
-        name: 'Harley',
-        species: 'cat',
-        breed: 'Tuxedo',
-        age: 18,
-        gender: 'male',
-        color: 'Black and White',
-        size: 'medium',
-        status: 'fostered',
-        intakeDate: '2025-07-11',
-        photos: ['https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=400'],
-        description: 'Energetic young cat who loves to play',
-        isSpayedNeutered: true,
-        isVaccinated: false,
-      },
-      {
-        id: '4',
-        name: 'Bear',
-        species: 'dog',
-        breed: 'Golden Retriever',
-        age: 48,
-        gender: 'male',
-        color: 'Golden',
-        size: 'large',
-        status: 'available',
-        intakeDate: '2025-06-20',
-        photos: ['https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400'],
-        description: 'Gentle giant who loves everyone he meets',
-        isSpayedNeutered: true,
-        isVaccinated: true,
-      },
-      {
-        id: '5',
-        name: 'Sadie',
-        species: 'cat',
-        breed: 'Siamese',
-        age: 30,
-        gender: 'female',
-        color: 'Cream',
-        size: 'medium',
-        status: 'available',
-        intakeDate: '2025-06-15',
-        photos: ['https://images.unsplash.com/photo-1573865526739-10639f7e6b8d?w=400'],
-        description: 'Elegant Siamese with beautiful blue eyes',
-        isSpayedNeutered: true,
-        isVaccinated: true,
-      },
-      {
-        id: '6',
-        name: 'Duke',
-        species: 'dog',
-        breed: 'Labrador Mix',
-        age: 24,
-        gender: 'male',
-        color: 'Chocolate',
-        size: 'large',
-        status: 'available',
-        intakeDate: '2025-07-01',
-        photos: ['https://images.unsplash.com/photo-1547407139-3c921a71905c?w=400'],
-        description: 'Friendly lab mix who loves to swim',
-        isSpayedNeutered: true,
-        isVaccinated: false,
-      },
-    ];
+  getAll: async (): Promise<Animal[]> => {
+    const { data, error } = await supabase
+      .from('animals')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching animals:', error);
+      throw new Error('Failed to fetch animals');
+    }
+    
+    return data || [];
   },
   
-  getById: async (id: string) => {
-    const animals = await animalsApi.getAll();
-    return animals.find(animal => animal.id === id) || null;
+  getById: async (id: string): Promise<Animal | null> => {
+    const { data, error } = await supabase
+      .from('animals')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching animal:', error);
+      return null;
+    }
+    
+    return data;
   },
   
-  create: async (data: any) => {
-    // Mock create
-    return { id: Date.now().toString(), ...data };
+  create: async (data: Partial<Animal>): Promise<Animal> => {
+    const { data: result, error } = await supabase
+      .from('animals')
+      .insert([data])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating animal:', error);
+      throw new Error('Failed to create animal');
+    }
+    
+    return result;
   },
   
-  update: async (id: string, data: any) => {
-    // Mock update
-    return { id, ...data };
+  update: async (id: string, data: Partial<Animal>): Promise<Animal> => {
+    const { data: result, error } = await supabase
+      .from('animals')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating animal:', error);
+      throw new Error('Failed to update animal');
+    }
+    
+    return result;
   },
 };
 
 export const medicalApi = {
   getTasks: async () => {
-    // Mock medical tasks matching the dashboard screenshot
-    return [
-      {
-        id: '1',
-        animalName: 'Bear',
-        type: 'treatment',
-        title: 'Hip X-ray Follow-up',
-        status: 'overdue',
-        dueDate: '2025-08-10',
-        priority: 'high',
-        description: 'needs attention',
-      },
-      {
-        id: '2',
-        animalName: 'Sadie',
-        type: 'treatment',
-        title: 'Dental Cleaning',
-        status: 'overdue',
-        dueDate: '2025-08-12',
-        priority: 'high',
-        description: 'needs attention',
-      },
-      {
-        id: '3',
-        animalName: 'Duke',
-        type: 'vaccine',
-        title: 'Annual Vaccination',
-        status: 'overdue',
-        dueDate: '2025-08-08',
-        priority: 'high',
-        description: 'needs attention',
-      },
-      {
-        id: '4',
-        animalName: 'Sophie',
-        type: 'treatment',
-        title: 'Health Check',
-        status: 'overdue',
-        dueDate: '2025-08-14',
-        priority: 'high',
-        description: 'needs attention',
-      },
-    ];
+    const { data, error } = await supabase
+      .from('medical_records')
+      .select(`
+        *,
+        animals!inner(name)
+      `)
+      .eq('is_completed', false)
+      .order('date', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching medical tasks:', error);
+      throw new Error('Failed to fetch medical tasks');
+    }
+    
+    // Transform the data to match the expected format
+    return (data || []).map(record => ({
+      id: record.id,
+      animalName: record.animals?.name || 'Unknown',
+      type: record.type,
+      title: record.title,
+      status: record.next_due_date && new Date(record.next_due_date) < new Date() ? 'overdue' : 'pending',
+      dueDate: record.next_due_date || record.date,
+      priority: record.next_due_date && new Date(record.next_due_date) < new Date() ? 'high' : 'medium',
+      description: record.description || 'needs attention',
+    }));
   },
   
-  createTask: async (data: any) => {
-    return { id: Date.now().toString(), ...data };
+  createTask: async (data: Partial<MedicalRecord>): Promise<MedicalRecord> => {
+    const { data: result, error } = await supabase
+      .from('medical_records')
+      .insert([data])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating medical task:', error);
+      throw new Error('Failed to create medical task');
+    }
+    
+    return result;
   },
   
-  updateTask: async (id: string, data: any) => {
-    return { id, ...data };
+  updateTask: async (id: string, data: Partial<MedicalRecord>): Promise<MedicalRecord> => {
+    const { data: result, error } = await supabase
+      .from('medical_records')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating medical task:', error);
+      throw new Error('Failed to update medical task');
+    }
+    
+    return result;
   },
 };
 
 export const applicationsApi = {
-  getAll: async () => {
-    const res = await apiRequest("GET", "/api/v1/applications");
-    return res.json();
+  getAll: async (): Promise<Adoption[]> => {
+    const { data, error } = await supabase
+      .from('adoptions')
+      .select('*')
+      .order('application_date', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching adoptions:', error);
+      throw new Error('Failed to fetch adoptions');
+    }
+    
+    return data || [];
   },
   
-  create: async (data: any) => {
-    const res = await apiRequest("POST", "/api/v1/applications", data);
-    return res.json();
+  create: async (data: Partial<Adoption>): Promise<Adoption> => {
+    const { data: result, error } = await supabase
+      .from('adoptions')
+      .insert([data])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating adoption:', error);
+      throw new Error('Failed to create adoption');
+    }
+    
+    return result;
   },
   
-  update: async (id: string, data: any) => {
-    const res = await apiRequest("PATCH", `/api/v1/applications/${id}`, data);
-    return res.json();
+  update: async (id: string, data: Partial<Adoption>): Promise<Adoption> => {
+    const { data: result, error } = await supabase
+      .from('adoptions')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating adoption:', error);
+      throw new Error('Failed to update adoption');
+    }
+    
+    return result;
   },
 };
 
 export const peopleApi = {
   getAll: async () => {
-    const res = await apiRequest("GET", "/api/v1/people");
-    return res.json();
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching people:', error);
+      throw new Error('Failed to fetch people');
+    }
+    
+    return data || [];
   },
   
   create: async (data: any) => {
-    const res = await apiRequest("POST", "/api/v1/people", data);
-    return res.json();
+    const { data: result, error } = await supabase
+      .from('users')
+      .insert([data])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating person:', error);
+      throw new Error('Failed to create person');
+    }
+    
+    return result;
   },
 };
 

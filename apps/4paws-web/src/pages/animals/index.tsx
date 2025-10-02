@@ -39,14 +39,14 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import AppLayout from "@/components/layout/app-layout";
-import { animalsApi } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import AppLayout from "../../components/layout/app-layout";
+import { animalsApi } from "../../lib/api";
+import { Card, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Badge } from "../../components/ui/badge";
 import { Search, Filter, Plus, Calendar, MapPin } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 export default function AnimalsIndex() {
   // ============================================================================
@@ -68,8 +68,9 @@ export default function AnimalsIndex() {
    * Data shared with dashboard and other pages.
    * Invalidated after animal updates (create, edit, delete).
    */
-  const { data: animals = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/v1/animals"],
+  const { data: animals = [], isLoading } = useQuery({
+    queryKey: ["animals"],
+    queryFn: animalsApi.getAll,
   });
 
   // ============================================================================
@@ -331,7 +332,7 @@ export default function AnimalsIndex() {
                     {/* Animal name (primary identifier) */}
                     <h3 className="font-semibold text-foreground" data-testid={`text-name-${animal.name}`}>{animal.name}</h3>
                     {/* Breed and sex (secondary info) */}
-                    <p className="text-sm text-muted-foreground">{animal.breed} • {animal.sex}</p>
+                    <p className="text-sm text-muted-foreground">{animal.breed} • {animal.gender}</p>
                   </div>
                   {/* Status badge (color-coded) */}
                   <Badge className={getStatusColor(animal.status)} data-testid={`badge-status-${animal.id}`}>
@@ -353,10 +354,10 @@ export default function AnimalsIndex() {
                  */}
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
-                  <span>{animal.kennelId || 'No kennel'}</span>
+                  <span>{animal.microchip_id || 'No kennel'}</span>
                   <span>•</span>
                   <Calendar className="w-3 h-3" />
-                  <span>{new Date(animal.intakeDate).toLocaleDateString()}</span>
+                  <span>{new Date(animal.intake_date).toLocaleDateString()}</span>
                 </div>
               </CardContent>
             </Card>
