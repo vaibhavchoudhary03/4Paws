@@ -1,19 +1,23 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import AppLayout from "@/components/layout/app-layout";
-import { medicalApi } from "@/lib/api";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, CheckCircle, Plus, ListChecks } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiRequest } from "@/lib/queryClient";
+import AppLayout from "../../components/layout/app-layout";
+import { medicalApi } from "../../lib/api";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { AlertTriangle, CheckCircle, Plus, ListChecks, Edit, Calendar } from "lucide-react";
+import { useToast } from "../../hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { apiRequest } from "../../lib/queryClient";
 
 export default function MedicalIndex() {
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
+  const [dateFilter, setDateFilter] = useState("today");
+  const [typeFilter, setTypeFilter] = useState("all-types");
   
   const { data: tasks = [], isLoading } = useQuery<any[]>({
     queryKey: ["medical-tasks"],
@@ -53,7 +57,17 @@ export default function MedicalIndex() {
   });
 
   const handleMarkDone = (taskId: string) => {
-    updateTaskMutation.mutate({ id: taskId, data: { status: 'done' } });
+    updateTaskMutation.mutate({ id: taskId, data: { is_completed: true } });
+  };
+
+  const handleEditTask = (taskId: string) => {
+    setLocation(`/medical/${taskId}/edit`);
+  };
+
+  const handleRescheduleTask = (taskId: string) => {
+    // For now, just navigate to edit page
+    // In the future, we could have a quick reschedule modal
+    setLocation(`/medical/${taskId}/edit`);
   };
 
   const handleToggleTask = (taskId: string) => {
@@ -97,12 +111,47 @@ export default function MedicalIndex() {
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   
-  const overdueTasks = tasks.filter((t: any) => 
+  // Filter tasks based on date and type filters
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task: any) => {
+      // Date filtering
+      const dueDate = new Date(task.dueDate);
+      let matchesDate = true;
+      
+      switch (dateFilter) {
+        case "today":
+          matchesDate = dueDate.getDate() === today.getDate() &&
+                       dueDate.getMonth() === today.getMonth() &&
+                       dueDate.getFullYear() === today.getFullYear();
+          break;
+        case "overdue":
+          matchesDate = dueDate < today;
+          break;
+        case "week":
+          matchesDate = dueDate >= today && dueDate <= weekFromNow;
+          break;
+        case "all":
+        default:
+          matchesDate = true;
+      }
+      
+      // Type filtering
+      let matchesType = true;
+      if (typeFilter !== "all-types") {
+        matchesType = task.type === typeFilter;
+      }
+      
+      return matchesDate && matchesType;
+    });
+  }, [tasks, dateFilter, typeFilter, today, weekFromNow]);
+  
+  const overdueTasks = filteredTasks.filter((t: any) => 
     !t.is_completed && new Date(t.dueDate) < today
   );
   
-  const todayTasks = tasks.filter((t: any) => {
+  const todayTasks = filteredTasks.filter((t: any) => {
     const dueDate = new Date(t.dueDate);
     return !t.is_completed && 
            dueDate.getDate() === today.getDate() &&
@@ -113,13 +162,13 @@ export default function MedicalIndex() {
   return (
     <AppLayout 
       title="Medical Schedule" 
-      subtitle={`${tasks.length} tasks • ${overdueTasks.length} overdue`}
+      subtitle={`${filteredTasks.length} of ${tasks.length} tasks • ${overdueTasks.length} overdue`}
     >
       <Card className="mb-6">
         <CardHeader className="border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex gap-3">
-              <Select defaultValue="today">
+              <Select value={dateFilter} onValueChange={setDateFilter}>
                 <SelectTrigger className="w-[180px]" data-testid="select-date-filter">
                   <SelectValue placeholder="All Dates" />
                 </SelectTrigger>
@@ -130,7 +179,7 @@ export default function MedicalIndex() {
                   <SelectItem value="week">This Week</SelectItem>
                 </SelectContent>
               </Select>
-              <Select defaultValue="all-types">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-[180px]" data-testid="select-type-filter">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
@@ -139,6 +188,9 @@ export default function MedicalIndex() {
                   <SelectItem value="vaccine">Vaccines</SelectItem>
                   <SelectItem value="treatment">Treatments</SelectItem>
                   <SelectItem value="exam">Exams</SelectItem>
+                  <SelectItem value="surgery">Surgeries</SelectItem>
+                  <SelectItem value="checkup">Checkups</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -155,7 +207,11 @@ export default function MedicalIndex() {
                   Mark {selectedTasks.size} as Done
                 </Button>
               )}
-              <Button size="sm" data-testid="button-add-task" disabled>
+              <Button 
+                size="sm" 
+                data-testid="button-add-task"
+                onClick={() => setLocation("/medical/create")}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>
@@ -216,8 +272,23 @@ export default function MedicalIndex() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" data-testid={`button-reschedule-${task.id}`}>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            data-testid={`button-reschedule-${task.id}`}
+                            onClick={() => handleRescheduleTask(task.id)}
+                          >
+                            <Calendar className="w-4 h-4 mr-1" />
                             Reschedule
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            data-testid={`button-edit-${task.id}`}
+                            onClick={() => handleEditTask(task.id)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
                           </Button>
                           <Button 
                             size="sm" 
@@ -282,7 +353,22 @@ export default function MedicalIndex() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Reschedule</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRescheduleTask(task.id)}
+                          >
+                            <Calendar className="w-4 h-4 mr-1" />
+                            Reschedule
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditTask(task.id)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
                           <Button 
                             size="sm" 
                             className="bg-success hover:bg-success/90"

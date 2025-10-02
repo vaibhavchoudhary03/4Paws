@@ -8,6 +8,7 @@ import { Badge } from "../../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Dog, Calendar, MapPin, Edit, Trash2, FileText, Stethoscope, Heart } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
+import PhotoGallery from "../../components/ui/photo-gallery";
 
 export default function AnimalDetail() {
   const [, params] = useRoute("/animals/:id");
@@ -120,18 +121,29 @@ export default function AnimalDetail() {
         <div className="lg:col-span-1 space-y-6">
           <Card data-testid="card-animal-photo">
             <CardContent className="p-0">
-              <div className="w-full aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
-                {animal.photos && animal.photos.length > 0 ? (
-                  <img 
-                    src={animal.photos[0]} 
-                    alt={animal.name}
-                    className="w-full h-full object-cover"
-                    data-testid="img-animal-main"
-                  />
-                ) : (
-                  <Dog className="w-24 h-24 text-muted-foreground" />
-                )}
-              </div>
+                  <div className="w-full aspect-square bg-muted flex items-center justify-center rounded-t-xl overflow-hidden">
+                    {animal.photos && animal.photos.length > 0 ? (
+                      <img 
+                        src={animal.photos[0]} 
+                        alt={animal.name}
+                        className="w-full h-full object-cover"
+                        data-testid="img-animal-main"
+                      />
+                    ) : (
+                      <Dog className="w-24 h-24 text-muted-foreground" />
+                    )}
+                  </div>
+                  
+                  {/* Photo Gallery */}
+                  {animal.photos && animal.photos.length > 0 && (
+                    <div className="mt-4">
+                      <PhotoGallery
+                        photos={animal.photos}
+                        editable={false}
+                        className="max-h-32"
+                      />
+                    </div>
+                  )}
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <Badge className={getStatusColor(animal.status)} data-testid="badge-animal-status">

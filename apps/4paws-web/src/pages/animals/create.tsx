@@ -48,6 +48,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
+import PhotoUpload from "../../components/ui/photo-upload";
 
 // Validation schema
 const animalSchema = z.object({
@@ -75,6 +76,7 @@ const animalSchema = z.object({
   special_needs: z.string().max(1000, "Special needs too long").optional(),
   is_spayed_neutered: z.boolean().optional(),
   is_vaccinated: z.boolean().optional(),
+  photos: z.array(z.string()).optional(),
 });
 
 type AnimalFormData = z.infer<typeof animalSchema>;
@@ -84,6 +86,7 @@ export default function CreateAnimal() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const {
     register,
@@ -101,6 +104,7 @@ export default function CreateAnimal() {
       status: "available",
       is_spayed_neutered: false,
       is_vaccinated: false,
+      photos: [],
     }
   });
 
@@ -113,6 +117,7 @@ export default function CreateAnimal() {
       // Add organization_id and timestamps
       const animalData = {
         ...data,
+        photos: photos, // Include uploaded photos
         organization_id: "00000000-0000-0000-0000-000000000001", // Demo organization
         intake_date: new Date().toISOString().split('T')[0],
         created_at: new Date().toISOString(),
@@ -372,6 +377,20 @@ export default function CreateAnimal() {
             </Card>
 
             {/* Right Column - Additional Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Photos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PhotoUpload
+                  onPhotosChange={setPhotos}
+                  existingPhotos={photos}
+                  maxPhotos={10}
+                  maxSize={5}
+                />
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Additional Information</CardTitle>

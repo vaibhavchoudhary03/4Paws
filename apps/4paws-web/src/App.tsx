@@ -56,6 +56,8 @@ import CreateAnimal from "./pages/animals/create";
 import EditAnimal from "./pages/animals/edit";
 import IntakeWizard from "./pages/intake/wizard";
 import MedicalIndex from "./pages/medical/index";
+import CreateMedicalTask from "./pages/medical/create";
+import EditMedicalTask from "./pages/medical/edit";
 import AdoptionsPipeline from "./pages/adoptions/pipeline";
 import FostersPortal from "./pages/fosters/portal";
 import VolunteersPortal from "./pages/volunteers/portal";
@@ -128,6 +130,8 @@ function Router() {
       <Route path="/intake" component={IntakeWizard} />
       
       {/* Medical management - Scheduling and compliance */}
+      <Route path="/medical/create" component={CreateMedicalTask} />
+      <Route path="/medical/:id/edit" component={EditMedicalTask} />
       <Route path="/medical" component={MedicalIndex} />
       
       {/* Adoption workflow - Application processing */}
