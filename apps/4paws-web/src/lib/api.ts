@@ -71,16 +71,21 @@ export const authApi = {
 
 export const animalsApi = {
   getAll: async (): Promise<Animal[]> => {
+    console.log('🔍 Fetching animals from Supabase...');
+    
     const { data, error } = await supabase
       .from('animals')
       .select('*')
       .order('created_at', { ascending: false });
     
+    console.log('📊 Supabase response:', { data, error });
+    
     if (error) {
-      console.error('Error fetching animals:', error);
+      console.error('❌ Error fetching animals:', error);
       throw new Error('Failed to fetch animals');
     }
     
+    console.log('✅ Animals fetched successfully:', data?.length || 0, 'animals');
     return data || [];
   },
   
@@ -133,6 +138,8 @@ export const animalsApi = {
 
 export const medicalApi = {
   getTasks: async () => {
+    console.log('🔍 Fetching medical tasks from Supabase...');
+    
     const { data, error } = await supabase
       .from('medical_records')
       .select(`
@@ -142,13 +149,15 @@ export const medicalApi = {
       .eq('is_completed', false)
       .order('date', { ascending: true });
     
+    console.log('📊 Medical tasks response:', { data, error });
+    
     if (error) {
-      console.error('Error fetching medical tasks:', error);
+      console.error('❌ Error fetching medical tasks:', error);
       throw new Error('Failed to fetch medical tasks');
     }
     
     // Transform the data to match the expected format
-    return (data || []).map(record => ({
+    const transformed = (data || []).map(record => ({
       id: record.id,
       animalName: record.animals?.name || 'Unknown',
       type: record.type,
@@ -158,6 +167,9 @@ export const medicalApi = {
       priority: record.next_due_date && new Date(record.next_due_date) < new Date() ? 'high' : 'medium',
       description: record.description || 'needs attention',
     }));
+    
+    console.log('✅ Medical tasks fetched successfully:', transformed.length, 'tasks');
+    return transformed;
   },
   
   createTask: async (data: Partial<MedicalRecord>): Promise<MedicalRecord> => {
