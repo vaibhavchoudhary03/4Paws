@@ -129,3 +129,42 @@ Preferred communication style: Simple, everyday language.
 - Future integration points: Shelter Animals Count export, additional microchip registries
 - CSV export functionality for reporting
 - QR code support for volunteer portal access
+
+## Code Documentation and Readability
+
+**Documentation Strategy:**
+The entire codebase has been comprehensively commented to improve maintainability and onboarding for new developers. Documentation follows a consistent pattern throughout the application.
+
+**Backend Documentation:**
+- **shared/schema.ts** - Complete database schema documentation including table relationships, multi-tenant architecture patterns, JSONB usage, and design decisions for each table and column
+- **server/storage.ts** - Data access layer documentation explaining CRUD operations, organization scoping patterns, and transaction handling
+- **server/auth.ts** - Authentication system documentation covering bcrypt password hashing, session management, and security best practices
+- **server/routes.ts** (600+ lines) - Comprehensive API route documentation including:
+  - Overall architecture overview and security patterns
+  - Detailed endpoint documentation with request/response examples
+  - Business logic explanations for complex operations
+  - Multi-tenant isolation enforcement
+  - Stripe payment processing workflows
+  - CSV export generation
+  - Petfinder XML feed generation
+
+**Frontend Documentation:**
+- **client/src/App.tsx** - Application root documentation explaining provider hierarchy, routing structure, and component organization
+- **client/src/lib/queryClient.ts** - React Query (TanStack Query) configuration documentation covering caching strategies, mutation patterns, and API integration
+- **client/src/pages/dashboard.tsx** - Dashboard component documentation explaining metrics calculation, data fetching, and real-time statistics
+- **client/src/pages/animals/index.tsx** - Animals list page documentation covering grid layout, filtering patterns, and responsive design
+
+**Documentation Principles:**
+- **What AND Why** - Comments explain both implementation and rationale
+- **Architecture Context** - Each file includes overview of its role in the larger system
+- **Usage Examples** - Code patterns include example usage and common scenarios
+- **Future Enhancements** - TODOs and enhancement ideas documented inline
+- **Security Notes** - Security considerations highlighted where relevant
+- **Data Flow** - Request/response flows and state management patterns explained
+
+**Benefits:**
+- Easier onboarding for new developers
+- Clearer understanding of multi-tenant architecture
+- Documented security patterns and best practices
+- Maintenance and debugging guidance
+- Foundation for technical documentation generation
