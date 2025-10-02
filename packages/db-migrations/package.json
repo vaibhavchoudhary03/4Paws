@@ -1,0 +1,18 @@
+{
+  "name": "@4paws/db-migrations",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "drizzle-kit": "^0.31.4",
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.11",
+    "typescript": "^5.8.3"
+  }
+}

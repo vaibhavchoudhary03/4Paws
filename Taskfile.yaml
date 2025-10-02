@@ -1,0 +1,60 @@
+version: '3'
+
+tasks:
+  # Development
+  dev:
+    desc: "Start development servers"
+    run: concurrently "bun run --cwd apps/4paws-api dev" "bun run --cwd apps/4paws-web dev"
+
+  # Building
+  build:
+    desc: "Build all applications"
+    run: |
+      bun run --cwd apps/4paws-api build
+      bun run --cwd apps/4paws-web build
+
+  # Linting and Type Checking
+  lint:
+    desc: "Run ESLint on all code"
+    run: eslint . --ext .ts,.tsx,.js,.jsx
+
+  type-check:
+    desc: "Run TypeScript type checking"
+    run: tsc --noEmit
+
+  lint:fix:
+    desc: "Fix ESLint issues automatically"
+    run: eslint . --ext .ts,.tsx,.js,.jsx --fix
+
+  lint:fix:type-check:
+    desc: "Fix linting issues and run type checking"
+    run: |
+      eslint . --ext .ts,.tsx,.js,.jsx --fix
+      tsc --noEmit
+
+  # Database
+  db:generate:
+    desc: "Generate database migrations"
+    run: bun run --cwd packages/db-migrations generate
+
+  db:migrate:
+    desc: "Apply database migrations"
+    run: bun run --cwd packages/db-migrations migrate
+
+  # Installation
+  install:
+    desc: "Install all dependencies"
+    run: bun install
+
+  # Supabase
+  supabase:start:
+    desc: "Start Supabase local development"
+    run: supabase start
+
+  supabase:stop:
+    desc: "Stop Supabase local development"
+    run: supabase stop
+
+  supabase:reset:
+    desc: "Reset Supabase local development"
+    run: supabase stop && supabase start

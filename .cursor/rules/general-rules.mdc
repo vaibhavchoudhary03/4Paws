@@ -1,0 +1,122 @@
+---
+description: 4Paws Animal Shelter Management System - AI Development Rules
+globs: 
+alwaysApply: true
+---
+
+The following rules should be considered ALWAYS for the 4Paws project
+
+# The package manager
+
+This project uses `bun` for all package management and code-running.
+
+# Project structure
+
+This project is a `bun` **monorepo** for an animal shelter management system. Apps are in the `apps` folder, and packages are in the `packages` folder.
+
+- `apps/4paws-web` - React frontend application
+- `apps/4paws-api` - Express.js backend API
+- `packages/db` - Database schema and Supabase integration
+- `packages/shared` - Shared types and utilities
+
+# The main `Taskfile.yaml`
+
+The main `Taskfile.yaml` includes the commands you can use to perform important operations on the codebase.
+
+## Linting
+
+You can run the linter by running `task lint:fix:type-check`.
+
+ANYTIME YOU ARE MAKING CHANGES, YOU MUST ALWAYS RUN THE LINTER TO CHECK FOR ANY TYPE ERRORS.
+
+## Dependency management
+
+Dependencies are scoped **to a specific package** so it's important to run the installation commands **inside the directory of the package you want to add the dependency to**.
+
+### Installing a new dependency
+
+Install new dependencies with bun's standard `bun install` command.
+
+### Installing a new **development** dependency
+
+Install new development dependencies with bun's standard `bun install -D` command.
+
+## Database and Supabase
+
+We use **Supabase** for:
+- Authentication (users, roles, sessions)
+- Database (PostgreSQL with Drizzle ORM)
+- Real-time features
+- File storage
+
+### Database Schema
+
+The database schema is defined in `packages/db/src/schema.ts` using Drizzle ORM.
+
+Key entities:
+- `organizations` - Multi-tenant organizations
+- `users` - Users with roles (admin, staff, volunteer, foster, readonly)
+- `animals` - Animal records with intake/outcome tracking
+- `medicalRecords` - Medical history and treatments
+- `adoptions` - Adoption applications and tracking
+- `fosters` - Foster care assignments
+- `volunteerActivities` - Volunteer activity logging
+- `reports` - Custom reports and analytics
+
+### Database Migration
+
+You can generate database migrations by running `task db:generate`
+
+ANYTIME YOU MAKE DATABASE SCHEMA CHANGES, YOU MUST GENERATE MIGRATIONS.
+
+You should NEVER edit the generated Drizzle migration files manually UNLESS EXPLICITLY INSTRUCTED TO.
+
+STRIKE TO ALWAYS MAKE BACKWARDS COMPATIBLE CHANGES TO THE DATABASE SCHEMA (i.e. add new columns, but do not remove or change existing columns).
+
+### Breaking changes
+
+DO NOT EVER REMOVE COLUMNS OR CHANGE A COLUMN UNLESS EXPLICITLY INSTRUCTED TO DO SO.
+
+# Code writing rules
+
+Never write obvious comments.
+
+ASSUME THE SERVER IS ALREADY RUNNING -- you do not need to run it ever.
+
+When writing code, always look for `ai-docs.md` files in the directory tree you are working in.
+
+# 4Paws Specific Rules
+
+## Multi-tenant Architecture
+
+- All data must be scoped to an organization
+- Users belong to organizations and have roles within that organization
+- Always check user permissions before data access
+
+## Animal Management
+
+- Animals have a complete lifecycle: intake → available → adopted/fostered
+- Medical records track all treatments and vaccinations
+- Photo uploads use Supabase storage
+
+## User Roles
+
+- `admin` - Full access to organization
+- `staff` - Animal management, adoptions, medical records
+- `volunteer` - Activity logging, basic animal info
+- `foster` - Foster animal management
+- `readonly` - View-only access
+
+## API Design
+
+- Use RESTful endpoints under `/api/v1`
+- Implement proper error handling and validation
+- Use Zod for request/response validation
+- Return consistent JSON responses
+
+## Frontend
+
+- Use React with TypeScript
+- Implement proper loading states and error handling
+- Use Tailwind CSS for styling
+- Follow the orange/yellow/white brand theme

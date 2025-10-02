@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/4paws-api/index.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "apps/4paws-web/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "apps/4paws-api/index.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "apps/4paws-web/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
