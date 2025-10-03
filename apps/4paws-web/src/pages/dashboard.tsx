@@ -45,12 +45,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import AppLayout from "../components/layout/app-layout";
-import { medicalApi, animalsApi } from "../lib/api";
+import { medicalApi, animalsApi, peopleApi, applicationsApi, fostersApi, volunteerActivitiesApi } from "../lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { Dog, Stethoscope, HeartHandshake, HeartPulse, TrendingUp, AlertTriangle, Calendar, CheckCircle, RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Dog, Stethoscope, HeartHandshake, HeartPulse, TrendingUp, AlertTriangle, Calendar, CheckCircle, RefreshCw, BarChart3, PieChart, LineChart, Users, Activity } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
+import { SkeletonDashboard, SkeletonMetric, SkeletonChart } from "../components/ui/skeleton";
+import { DataLoadingState, NetworkErrorState } from "../components/ui/error-state";
+import { LoadingState } from "../components/ui/loading-state";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  LineChart as RechartsLineChart,
+  Line,
+  Area,
+  AreaChart
+} from "recharts";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -98,7 +118,43 @@ export default function Dashboard() {
    */
   const { data: animals = [], isLoading: animalsLoading, error: animalsError } = useQuery({
     queryKey: ["animals"],
-    queryFn: animalsApi.getAll,
+    queryFn: async () => {
+      console.log('🔍 Fetching animals from Supabase...');
+      return await animalsApi.getAll();
+    },
+  });
+
+  // Additional data for enhanced dashboard
+  const { data: people = [] } = useQuery({
+    queryKey: ["people"],
+    queryFn: async () => {
+      console.log('🔍 Fetching people for dashboard...');
+      return await peopleApi.getAll();
+    },
+  });
+
+  const { data: applications = [] } = useQuery({
+    queryKey: ["applications"],
+    queryFn: async () => {
+      console.log('🔍 Fetching applications for dashboard...');
+      return await applicationsApi.getAll();
+    },
+  });
+
+  const { data: fosters = [] } = useQuery({
+    queryKey: ["fosters"],
+    queryFn: async () => {
+      console.log('🔍 Fetching fosters for dashboard...');
+      return await fostersApi.getAll();
+    },
+  });
+
+  const { data: volunteerActivities = [] } = useQuery({
+    queryKey: ["volunteer-activities"],
+    queryFn: async () => {
+      console.log('🔍 Fetching volunteer activities for dashboard...');
+      return await volunteerActivitiesApi.getAll();
+    },
   });
 
   /**
@@ -294,33 +350,121 @@ export default function Dashboard() {
     ).length,
   };
 
-  // Show loading state if data is still loading
+
+  // ============================================================================
+  // CHART DATA CALCULATIONS - Prepare data for visualizations
+  // ============================================================================
+  
+  // Species breakdown for pie chart
+  const speciesData = animals.reduce((acc: any, animal) => {
+    const species = animal.species || 'Unknown';
+    const existing = acc.find((item: any) => item.name === species);
+    if (existing) {
+      existing.value += 1;
+    } else {
+      acc.push({ name: species, value: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Status breakdown for bar chart
+  const statusData = animals.reduce((acc: any, animal) => {
+    const status = animal.status || 'Unknown';
+    const existing = acc.find((item: any) => item.status === status);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      acc.push({ status, count: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Monthly intake trends (last 6 months)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  
+  const monthlyIntakes = animals
+    .filter(animal => new Date(animal.intake_date) >= sixMonthsAgo)
+    .reduce((acc: any, animal) => {
+      const month = new Date(animal.intake_date).toISOString().slice(0, 7); // YYYY-MM
+      const existing = acc.find((item: any) => item.month === month);
+      if (existing) {
+        existing.intakes += 1;
+      } else {
+        acc.push({ month, intakes: 1 });
+      }
+      return acc;
+    }, [])
+    .sort((a: any, b: any) => a.month.localeCompare(b.month));
+
+  // Volunteer activity trends (last 30 days)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const volunteerTrends = volunteerActivities
+    .filter(activity => new Date(activity.date) >= thirtyDaysAgo)
+    .reduce((acc: any, activity) => {
+      const date = new Date(activity.date).toISOString().slice(0, 10); // YYYY-MM-DD
+      const existing = acc.find((item: any) => item.date === date);
+      if (existing) {
+        existing.hours += activity.duration || 0;
+        existing.activities += 1;
+      } else {
+        acc.push({ date, hours: activity.duration || 0, activities: 1 });
+      }
+      return acc;
+    }, [])
+    .sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+  // Adoption application trends
+  const adoptionTrends = applications
+    .filter(app => new Date(app.created_at) >= sixMonthsAgo)
+    .reduce((acc: any, app) => {
+      const month = new Date(app.created_at).toISOString().slice(0, 7);
+      const existing = acc.find((item: any) => item.month === month);
+      if (existing) {
+        existing.applications += 1;
+        if (app.status === 'approved') existing.approved += 1;
+        if (app.status === 'completed') existing.completed += 1;
+      } else {
+        acc.push({ 
+          month, 
+          applications: 1, 
+          approved: app.status === 'approved' ? 1 : 0,
+          completed: app.status === 'completed' ? 1 : 0
+        });
+      }
+      return acc;
+    }, [])
+    .sort((a: any, b: any) => a.month.localeCompare(b.month));
+
+  // Chart colors
+  const COLORS = ['#f97316', '#22c55e', '#3b82f6', '#eab308', '#ef4444', '#8b5cf6'];
+
+  // ============================================================================
+  // LOADING AND ERROR STATES
+  // ============================================================================
+  
+  // Show loading state if critical data is loading
   if (animalsLoading || medicalLoading) {
     return (
-      <AppLayout title="Dashboard" subtitle="Loading dashboard data...">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading dashboard data...</p>
-          </div>
-        </div>
+      <AppLayout title="Dashboard" subtitle="Welcome back! Here's what's happening today.">
+        <SkeletonDashboard />
       </AppLayout>
     );
   }
 
-  // Show error state if there are errors
+  // Show error state if there's a critical error
   if (animalsError || medicalError) {
     return (
-      <AppLayout title="Dashboard" subtitle="Error loading dashboard">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <p className="text-destructive font-semibold mb-2">Error loading dashboard</p>
-            <p className="text-muted-foreground">
-              {animalsError?.message || medicalError?.message || 'Unknown error occurred'}
-            </p>
-          </div>
-        </div>
+      <AppLayout title="Dashboard" subtitle="Welcome back! Here's what's happening today.">
+        <NetworkErrorState 
+          onRetry={() => {
+            queryClient.invalidateQueries({ queryKey: ["animals"] });
+            queryClient.invalidateQueries({ queryKey: ["medical-tasks"] });
+          }}
+          onGoHome={() => setLocation('/dashboard')}
+        />
       </AppLayout>
     );
   }
@@ -622,6 +766,236 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      )}
+
+      {/* ========================================================================
+          ANALYTICS DASHBOARD - Charts and visualizations
+          ======================================================================== */}
+      
+      {canViewReports && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Analytics Dashboard</h2>
+              <p className="text-sm text-muted-foreground">Data insights and trends</p>
+            </div>
+          </div>
+
+          {/* Charts Grid */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Species Distribution Pie Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="w-5 h-5" />
+                  Species Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  {speciesData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={speciesData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {speciesData.map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <SkeletonChart />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Animal Status Bar Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Animal Status Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  {statusData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={statusData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="status" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#f97316" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <SkeletonChart />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Monthly Intake Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LineChart className="w-5 h-5" />
+                  Intake Trends (6 Months)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  {monthlyIntakes.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsLineChart data={monthlyIntakes}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="intakes" stroke="#22c55e" strokeWidth={2} />
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <SkeletonChart />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Volunteer Activity Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  Volunteer Activity (30 Days)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  {volunteerTrends.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={volunteerTrends}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="hours" stackId="1" stroke="#3b82f6" fill="#3b82f6" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <SkeletonChart />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Key Metrics Summary */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  People Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Staff Members</span>
+                    <Badge variant="default">{people.filter(p => p.role === 'staff' || p.role === 'admin').length}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Volunteers</span>
+                    <Badge variant="secondary">{people.filter(p => p.role === 'volunteer').length}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Foster Families</span>
+                    <Badge variant="outline">{people.filter(p => p.role === 'foster').length}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HeartHandshake className="w-5 h-5" />
+                  Adoption Pipeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Total Applications</span>
+                    <Badge variant="default">{applications.length}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Pending Review</span>
+                    <Badge variant="outline">{applications.filter(a => a.status === 'pending').length}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Approved</span>
+                    <Badge variant="secondary">{applications.filter(a => a.status === 'approved').length}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Completed</span>
+                    <Badge variant="default">{applications.filter(a => a.status === 'completed').length}</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Performance Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Adoption Rate</span>
+                    <Badge variant="default">
+                      {applications.length > 0 
+                        ? ((applications.filter(a => a.status === 'completed').length / applications.length) * 100).toFixed(1)
+                        : '0'
+                      }%
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Task Completion</span>
+                    <Badge variant="secondary">
+                      {medicalTasks.length > 0 
+                        ? ((medicalTasks.filter(t => t.status === 'completed').length / medicalTasks.length) * 100).toFixed(1)
+                        : '0'
+                      }%
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Volunteer Hours</span>
+                    <Badge variant="outline">
+                      {volunteerActivities.reduce((sum, activity) => sum + (activity.duration || 0), 0)}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
 
       {/* ========================================================================

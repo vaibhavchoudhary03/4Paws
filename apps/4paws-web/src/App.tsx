@@ -64,6 +64,7 @@ import FostersPortal from "./pages/fosters/portal";
 import VolunteersPortal from "./pages/volunteers/portal";
 import ReportsIndex from "./pages/reports/index";
 import PeopleIndex from "./pages/people/index";
+import NotificationsIndex from "./pages/notifications/index";
 
 /**
  * Router Component - Defines all application routes
@@ -146,6 +147,7 @@ function Router() {
       {/* Management and reporting */}
       <Route path="/people" component={PeopleIndex} />
       <Route path="/reports" component={ReportsIndex} />
+      <Route path="/notifications" component={NotificationsIndex} />
       
       {/* Catch-all route - 404 handling (must be last) */}
       <Route component={NotFound} />
