@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Check, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Camera, Check, Loader2, Clock, User, Calendar, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { volunteerActivitiesApi, animalsApi } from "@/lib/api";
 import { AddPhotoDialog } from "@/components/dialogs/add-photo-dialog";
 
 export default function VolunteerPortal() {
@@ -18,34 +20,49 @@ export default function VolunteerPortal() {
   const [urgent, setUrgent] = useState<Record<string, boolean>>({});
   const [activityPending, setActivityPending] = useState<Record<string, boolean>>({});
   const [notePending, setNotePending] = useState<Record<string, boolean>>({});
+  const [duration, setDuration] = useState<Record<string, number>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: allAnimals = [], isLoading } = useQuery<any[]>({
+  // Mock current user ID - in real app, this would come from auth context
+  const currentUserId = "550e8400-e29b-41d4-a716-446655440001";
+
+  const { data: allAnimals = [], isLoading: animalsLoading } = useQuery({
     queryKey: ["animals"],
-    queryFn: async () => {
-      const { animalsApi } = await import("../../lib/api");
-      return await animalsApi.getAll();
-    },
+    queryFn: animalsApi.getAll,
+  });
+
+  const { data: volunteerActivities = [], isLoading: activitiesLoading } = useQuery({
+    queryKey: ["volunteer-activities"],
+    queryFn: volunteerActivitiesApi.getAll,
   });
 
   const animals = allAnimals.filter((a: any) => 
     a.status === 'available' || a.status === 'medical' || a.status === 'fostered'
   ).slice(0, 10);
 
+  // Get today's activities for current volunteer
+  const todayActivities = volunteerActivities.filter(activity => {
+    const activityDate = new Date(activity.date);
+    const today = new Date();
+    return activity.volunteerId === currentUserId && 
+           activityDate.toDateString() === today.toDateString();
+  });
+
   const logActivityMutation = useMutation({
-    mutationFn: async (data: { animalId: string; activity: string; animalName: string }) => {
-      const res = await apiRequest("POST", "/api/v1/notes", {
-        subjectType: "animal",
-        subjectId: data.animalId,
-        body: `Volunteer activity: ${data.activity}`,
-        visibility: "staff_only",
-        tags: [data.activity, "volunteer_activity"],
+    mutationFn: async (data: { animalId: string; activity: string; animalName: string; duration?: number }) => {
+      return volunteerActivitiesApi.create({
+        volunteerId: currentUserId,
+        animalId: data.animalId,
+        activityType: data.activity,
+        description: `Volunteer activity: ${data.activity}`,
+        duration: data.duration,
+        date: new Date().toISOString(),
+        notes: `Activity logged for ${data.animalName}`,
       });
-      return res.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/notes", "animal", variables.animalId] });
+      queryClient.invalidateQueries({ queryKey: ["volunteer-activities"] });
       setActivityPending(prev => ({ ...prev, [variables.animalId]: false }));
       toast({
         title: "Activity Logged",
@@ -63,18 +80,19 @@ export default function VolunteerPortal() {
   });
 
   const saveNoteMutation = useMutation({
-    mutationFn: async (data: { animalId: string; note: string; tags: string[] }) => {
-      const res = await apiRequest("POST", "/api/v1/notes", {
-        subjectType: "animal",
-        subjectId: data.animalId,
-        body: data.note,
-        visibility: "staff_only",
-        tags: data.tags,
+    mutationFn: async (data: { animalId: string; note: string; tags: string[]; duration?: number }) => {
+      return volunteerActivitiesApi.create({
+        volunteerId: currentUserId,
+        animalId: data.animalId,
+        activityType: "note",
+        description: data.note,
+        duration: data.duration,
+        date: new Date().toISOString(),
+        notes: data.tags.join(", "),
       });
-      return res.json();
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/v1/notes", "animal", variables.animalId] });
+      queryClient.invalidateQueries({ queryKey: ["volunteer-activities"] });
       setNotePending(prev => ({ ...prev, [variables.animalId]: false }));
       toast({
         title: "Note Saved",
@@ -95,7 +113,13 @@ export default function VolunteerPortal() {
 
   const handleActivity = (animalId: string, animalName: string, activity: string) => {
     setActivityPending(prev => ({ ...prev, [animalId]: true }));
-    logActivityMutation.mutate({ animalId, animalName, activity });
+    const activityDuration = duration[animalId] || undefined;
+    logActivityMutation.mutate({ 
+      animalId, 
+      animalName, 
+      activity, 
+      duration: activityDuration 
+    });
   };
 
   const handleSaveNote = (animalId: string) => {
@@ -113,7 +137,13 @@ export default function VolunteerPortal() {
       tags.push("urgent");
     }
     setNotePending(prev => ({ ...prev, [animalId]: true }));
-    saveNoteMutation.mutate({ animalId, note: noteText, tags });
+    const noteDuration = duration[animalId] || undefined;
+    saveNoteMutation.mutate({ 
+      animalId, 
+      note: noteText, 
+      tags, 
+      duration: noteDuration 
+    });
   };
 
   const handleAddPhoto = (animal: any) => {
@@ -121,7 +151,7 @@ export default function VolunteerPortal() {
     setPhotoDialogOpen(true);
   };
 
-  if (isLoading) {
+  if (animalsLoading || activitiesLoading) {
     return (
       <AppLayout title="Volunteer Check-In" subtitle="Loading...">
         <div className="flex items-center justify-center p-8">
@@ -132,7 +162,55 @@ export default function VolunteerPortal() {
   }
 
   return (
-    <AppLayout title="Volunteer Check-In" subtitle="Log your activities and help us track animal care">
+    <AppLayout 
+      title="Volunteer Check-In" 
+      subtitle={`Log your activities and help us track animal care • ${todayActivities.length} activities logged today`}
+    >
+      {/* Today's Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{todayActivities.length}</p>
+                <p className="text-sm text-muted-foreground">Activities Today</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">
+                  {todayActivities.reduce((total, activity) => total + (activity.duration || 0), 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">Minutes Today</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                <User className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{animals.length}</p>
+                <p className="text-sm text-muted-foreground">Animals Available</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Location Selection */}
       <Card className="mb-6" data-testid="card-location">
         <CardContent className="p-6">
@@ -176,6 +254,26 @@ export default function VolunteerPortal() {
                       {animal.breed} • {animal.sex}
                     </p>
                   </div>
+                </div>
+
+                {/* Duration Input */}
+                <div className="mb-3">
+                  <Label htmlFor={`duration-${animal.id}`} className="text-xs text-muted-foreground">
+                    Duration (minutes) - Optional
+                  </Label>
+                  <Input
+                    id={`duration-${animal.id}`}
+                    type="number"
+                    min="1"
+                    max="480"
+                    placeholder="e.g., 30"
+                    className="mt-1"
+                    value={duration[animal.id] || ""}
+                    onChange={(e) => setDuration(prev => ({ 
+                      ...prev, 
+                      [animal.id]: e.target.value ? parseInt(e.target.value) : 0 
+                    }))}
+                  />
                 </div>
 
                 {/* Quick Actions */}

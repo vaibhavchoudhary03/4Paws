@@ -59,6 +59,7 @@ import MedicalIndex from "./pages/medical/index";
 import CreateMedicalTask from "./pages/medical/create";
 import EditMedicalTask from "./pages/medical/edit";
 import AdoptionsPipeline from "./pages/adoptions/pipeline";
+import CreateAdoptionApplication from "./pages/adoptions/create";
 import FostersPortal from "./pages/fosters/portal";
 import VolunteersPortal from "./pages/volunteers/portal";
 import ReportsIndex from "./pages/reports/index";
@@ -135,6 +136,7 @@ function Router() {
       <Route path="/medical" component={MedicalIndex} />
       
       {/* Adoption workflow - Application processing */}
+      <Route path="/adoptions/create" component={CreateAdoptionApplication} />
       <Route path="/adoptions" component={AdoptionsPipeline} />
       
       {/* Portal routes - Role-specific interfaces */}

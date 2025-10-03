@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 6 Testing - People Management & Intake Workflow</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .test-checkbox {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+        .test-description {
+            flex: 1;
+            font-size: 14px;
+            color: #374151;
+        }
+        .test-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .test-link:hover {
+            text-decoration: underline;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .summary {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .api-test {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .api-test h4 {
+            margin: 0 0 10px 0;
+            color: #0369a1;
+        }
+        .api-result {
+            font-family: monospace;
+            font-size: 12px;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐾 Phase 6 Testing: People Management & Intake Workflow</h1>
+    
+    <div class="summary">
+        <h3>📋 Test Summary</h3>
+        <p><strong>Phase 6 Features:</strong> People Management (CRUD, Search, Roles) + Enhanced Intake Workflow (4-step wizard, photo upload, validation)</p>
+        <p><strong>Test Environment:</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+        <p><strong>Status:</strong> <span id="overall-status" class="status pending">Testing in Progress</span></p>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 API Connectivity Tests</h2>
+        <div class="api-test">
+            <h4>Test Server Connection</h4>
+            <button onclick="testServerConnection()">Test Connection</button>
+            <div id="server-result" class="api-result" style="display: none;"></div>
+        </div>
+        <div class="api-test">
+            <h4>Test People API</h4>
+            <button onclick="testPeopleAPI()">Test People API</button>
+            <div id="people-api-result" class="api-result" style="display: none;"></div>
+        </div>
+        <div class="api-test">
+            <h4>Test Animals API</h4>
+            <button onclick="testAnimalsAPI()">Test Animals API</button>
+            <div id="animals-api-result" class="api-result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>👥 People Management Testing</h2>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-load">
+            <span class="test-description">Navigate to People Management page and verify it loads</span>
+            <a href="http://localhost:3000/people" target="_blank" class="test-link">Open People Page</a>
+            <span class="status pending" id="people-load-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-search">
+            <span class="test-description">Test search functionality by name, email, or phone</span>
+            <span class="status pending" id="people-search-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-filter">
+            <span class="test-description">Test role-based filtering (admin, staff, volunteer, foster, adopter, donor)</span>
+            <span class="status pending" id="people-filter-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-create">
+            <span class="test-description">Create a new person with all required fields</span>
+            <span class="status pending" id="people-create-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-edit">
+            <span class="test-description">Edit an existing person's information</span>
+            <span class="status pending" id="people-edit-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-view">
+            <span class="test-description">View person details in the detailed view modal</span>
+            <span class="status pending" id="people-view-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="people-delete">
+            <span class="test-description">Delete a person (test with a test person)</span>
+            <span class="status pending" id="people-delete-status">Pending</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Intake Workflow Testing</h2>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-load">
+            <span class="test-description">Navigate to Intake Wizard and verify 4-step process loads</span>
+            <a href="http://localhost:3000/intake" target="_blank" class="test-link">Open Intake Page</a>
+            <span class="status pending" id="intake-load-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-step1">
+            <span class="test-description">Step 1: Test photo upload functionality (upload multiple photos)</span>
+            <span class="status pending" id="intake-step1-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-step2">
+            <span class="test-description">Step 2: Fill out basic information form with validation</span>
+            <span class="status pending" id="intake-step2-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-step3">
+            <span class="test-description">Step 3: Fill out intake details form</span>
+            <span class="status pending" id="intake-step3-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-step4">
+            <span class="test-description">Step 4: Review all information and submit</span>
+            <span class="status pending" id="intake-step4-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-validation">
+            <span class="test-description">Test form validation (try submitting without required fields)</span>
+            <span class="status pending" id="intake-validation-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="intake-navigation">
+            <span class="test-description">Test step navigation (Previous/Next buttons)</span>
+            <span class="status pending" id="intake-navigation-status">Pending</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔄 Data Integration Testing</h2>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="data-persistence">
+            <span class="test-description">Test data persistence (refresh page and verify changes remain)</span>
+            <span class="status pending" id="data-persistence-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="data-realtime">
+            <span class="test-description">Test real-time updates (open multiple tabs and verify changes sync)</span>
+            <span class="status pending" id="data-realtime-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="data-error">
+            <span class="test-description">Test error handling (disconnect internet and try operations)</span>
+            <span class="status pending" id="data-error-status">Pending</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 UI/UX Testing</h2>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="ui-responsive">
+            <span class="test-description">Test responsive design on different screen sizes</span>
+            <span class="status pending" id="ui-responsive-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="ui-accessibility">
+            <span class="test-description">Test keyboard navigation and accessibility</span>
+            <span class="status pending" id="ui-accessibility-status">Pending</span>
+        </div>
+        <div class="test-item">
+            <input type="checkbox" class="test-checkbox" id="ui-loading">
+            <span class="test-description">Test loading states and error messages</span>
+            <span class="status pending" id="ui-loading-status">Pending</span>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test Results Summary</h2>
+        <div id="test-summary">
+            <p>Total Tests: <span id="total-tests">0</span></p>
+            <p>Completed: <span id="completed-tests">0</span></p>
+            <p>Pending: <span id="pending-tests">0</span></p>
+            <p>Success Rate: <span id="success-rate">0%</span></p>
+        </div>
+        <button onclick="updateTestSummary()">Update Summary</button>
+        <button onclick="resetAllTests()">Reset All Tests</button>
+    </div>
+
+    <script>
+        // Test API connectivity
+        async function testServerConnection() {
+            const resultDiv = document.getElementById('server-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing server connection...';
+            
+            try {
+                const response = await fetch('http://localhost:3000');
+                if (response.ok) {
+                    resultDiv.textContent = '✅ Server connection successful!\nStatus: ' + response.status + '\nContent-Type: ' + response.headers.get('content-type');
+                } else {
+                    resultDiv.textContent = '❌ Server connection failed!\nStatus: ' + response.status;
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ Server connection error!\nError: ' + error.message;
+            }
+        }
+
+        async function testPeopleAPI() {
+            const resultDiv = document.getElementById('people-api-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing People API...';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/people');
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.textContent = '✅ People API working!\nFound ' + (data.length || 0) + ' people\nSample data: ' + JSON.stringify(data[0] || {}, null, 2);
+                } else {
+                    resultDiv.textContent = '❌ People API failed!\nStatus: ' + response.status + '\nError: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ People API error!\nError: ' + error.message;
+            }
+        }
+
+        async function testAnimalsAPI() {
+            const resultDiv = document.getElementById('animals-api-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing Animals API...';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/animals');
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.textContent = '✅ Animals API working!\nFound ' + (data.length || 0) + ' animals\nSample data: ' + JSON.stringify(data[0] || {}, null, 2);
+                } else {
+                    resultDiv.textContent = '❌ Animals API failed!\nStatus: ' + response.status + '\nError: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ Animals API error!\nError: ' + error.message;
+            }
+        }
+
+        // Update test summary
+        function updateTestSummary() {
+            const checkboxes = document.querySelectorAll('.test-checkbox');
+            const total = checkboxes.length;
+            const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const pending = total - completed;
+            const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('completed-tests').textContent = completed;
+            document.getElementById('pending-tests').textContent = pending;
+            document.getElementById('success-rate').textContent = successRate + '%';
+
+            // Update overall status
+            const overallStatus = document.getElementById('overall-status');
+            if (completed === total) {
+                overallStatus.textContent = 'All Tests Completed';
+                overallStatus.className = 'status completed';
+            } else if (completed > 0) {
+                overallStatus.textContent = 'Testing in Progress';
+                overallStatus.className = 'status pending';
+            } else {
+                overallStatus.textContent = 'Ready to Start';
+                overallStatus.className = 'status pending';
+            }
+        }
+
+        // Reset all tests
+        function resetAllTests() {
+            const checkboxes = document.querySelectorAll('.test-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                const statusSpan = cb.parentElement.querySelector('.status');
+                if (statusSpan) {
+                    statusSpan.textContent = 'Pending';
+                    statusSpan.className = 'status pending';
+                }
+            });
+            updateTestSummary();
+        }
+
+        // Auto-update status when checkboxes change
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('test-checkbox')) {
+                const statusSpan = e.target.parentElement.querySelector('.status');
+                if (statusSpan) {
+                    if (e.target.checked) {
+                        statusSpan.textContent = 'Completed';
+                        statusSpan.className = 'status completed';
+                    } else {
+                        statusSpan.textContent = 'Pending';
+                        statusSpan.className = 'status pending';
+                    }
+                }
+                updateTestSummary();
+            }
+        });
+
+        // Initialize
+        updateTestSummary();
+    </script>
+</body>
+</html>

@@ -77,21 +77,11 @@ export default function AnimalsIndex() {
    */
   const { data: animals = [], isLoading, error } = useQuery({
     queryKey: ["animals"],
-    queryFn: animalsApi.getAll,
+    queryFn: async () => {
+      console.log('🔍 Fetching animals from Supabase...');
+      return await animalsApi.getAll();
+    },
   });
-
-  // Debug logging (remove in production)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Animals Index Debug:', {
-      animalsCount: animals.length,
-      isLoading,
-      error,
-      searchTerm,
-      speciesFilter,
-      statusFilter,
-      filteredCount: filteredAnimals.length
-    });
-  }
 
   // ============================================================================
   // FILTERING LOGIC - Client-side filtering of animals
@@ -127,6 +117,19 @@ export default function AnimalsIndex() {
       return matchesSearch && matchesSpecies && matchesStatus;
     });
   }, [animals, searchTerm, speciesFilter, statusFilter]);
+
+  // Debug logging (remove in production)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Animals Index Debug:', {
+      animalsCount: animals.length,
+      isLoading,
+      error,
+      searchTerm,
+      speciesFilter,
+      statusFilter,
+      filteredCount: filteredAnimals.length
+    });
+  }
 
   // ============================================================================
   // HELPER FUNCTIONS - UI utilities for consistent styling

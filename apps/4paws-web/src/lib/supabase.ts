@@ -67,6 +67,26 @@ export interface Adoption {
   updated_at: string;
 }
 
+export interface AdoptionApplication extends Adoption {
+  animal?: {
+    id: string;
+    name: string;
+    breed?: string;
+    species: string;
+    status: string;
+    photos?: string[];
+    age?: number;
+    gender?: string;
+    description?: string;
+  };
+  adopter?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
+}
+
 export interface Foster {
   id: string;
   animal_id: string;
@@ -90,4 +110,67 @@ export interface VolunteerActivity {
   notes?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface FosterAssignment extends Foster {
+  animal?: {
+    id: string;
+    name: string;
+    breed?: string;
+    species: string;
+    status: string;
+    photos?: string[];
+    age?: number;
+    gender?: string;
+    description?: string;
+  };
+  foster?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
+}
+
+export interface VolunteerActivityWithRelations extends VolunteerActivity {
+  volunteer?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  animal?: {
+    id: string;
+    name: string;
+    breed?: string;
+    species: string;
+    photos?: string[];
+  };
+}
+
+export interface Person {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  role: string;
+  organization_id: string;
+  profile?: {
+    phone?: string;
+    address?: string;
+    bio?: string;
+    avatar?: string;
+    emergency_contact?: string;
+    emergency_phone?: string;
+    skills?: string[];
+    availability?: string;
+    notes?: string;
+  };
+  is_active: boolean;
+  last_login?: string;
+  created_at: string;
+  updated_at: string;
+  organization?: {
+    id: string;
+    name: string;
+  };
 }

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import AppLayout from "@/components/layout/app-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,27 +11,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Upload } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { Camera, Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { animalsApi } from "@/lib/api";
+import PhotoUpload from "@/components/ui/photo-upload";
 
-type IntakeFormData = {
-  name: string;
-  species: "dog" | "cat" | "other";
-  breed: string;
-  sex: string;
-  color: string;
-  dobEst: string;
-  microchip: string;
-  description: string;
-  intakeDate: string;
-  status: "available" | "hold" | "fostered" | "adopted" | "transferred" | "rto" | "euthanized";
-  attributes: {
-    intakeType?: "stray" | "owner_surrender" | "transfer_in" | "confiscation" | "born_in_care";
-    intakeSource?: string;
-    intakeNotes?: string;
-  };
-};
+const intakeSchema = z.object({
+  name: z.string().min(1, "Animal name is required"),
+  species: z.enum(["dog", "cat", "other"]),
+  breed: z.string().optional(),
+  sex: z.enum(["male", "female", "unknown"]).optional(),
+  color: z.string().optional(),
+  dobEst: z.string().optional(),
+  microchip: z.string().optional(),
+  description: z.string().optional(),
+  intakeDate: z.string().min(1, "Intake date is required"),
+  status: z.enum(["available", "hold", "fostered", "adopted", "transferred", "rto", "euthanized"]),
+  intakeType: z.enum(["stray", "owner_surrender", "transfer_in", "confiscation", "born_in_care"]).optional(),
+  intakeSource: z.string().optional(),
+  intakeNotes: z.string().optional(),
+  photos: z.array(z.string()).optional(),
+});
+
+type IntakeFormData = z.infer<typeof intakeSchema>;
 
 export default function IntakeWizard() {
   const [, setLocation] = useLocation();
@@ -36,25 +43,31 @@ export default function IntakeWizard() {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
-  
-  const [formData, setFormData] = useState<IntakeFormData>({
-    name: "",
-    species: "dog",
-    breed: "",
-    sex: "",
-    color: "",
-    dobEst: "",
-    microchip: "",
-    description: "",
-    intakeDate: new Date().toISOString().split('T')[0],
-    status: "available",
-    attributes: {},
+  const [photos, setPhotos] = useState<string[]>([]);
+
+  const form = useForm<IntakeFormData>({
+    resolver: zodResolver(intakeSchema),
+    defaultValues: {
+      name: "",
+      species: "dog",
+      breed: "",
+      sex: "unknown",
+      color: "",
+      dobEst: "",
+      microchip: "",
+      description: "",
+      intakeDate: new Date().toISOString().split('T')[0],
+      status: "available",
+      intakeType: "stray",
+      intakeSource: "",
+      intakeNotes: "",
+      photos: [],
+    },
   });
 
   const createAnimalMutation = useMutation({
     mutationFn: async (data: IntakeFormData) => {
-      const { animalsApi } = await import("../../lib/api");
-      return await animalsApi.create({
+      return animalsApi.create({
         organization_id: '00000000-0000-0000-0000-000000000001',
         name: data.name,
         species: data.species,
@@ -66,9 +79,10 @@ export default function IntakeWizard() {
         status: data.status,
         microchip_id: data.microchip || null,
         description: data.description || null,
-        behavior_notes: data.attributes.intakeNotes || null,
+        behavior_notes: data.intakeNotes || null,
         is_spayed_neutered: false,
         is_vaccinated: false,
+        photos: photos,
       });
     },
     onSuccess: () => {
@@ -95,34 +109,27 @@ export default function IntakeWizard() {
     { number: 4, title: "Review", description: "Confirm details" },
   ];
 
-  const handleInputChange = (field: keyof IntakeFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleAttributeChange = (key: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      attributes: { ...prev.attributes, [key]: value },
-    }));
-  };
-
   const canGoNext = () => {
     if (step === 2) {
-      return formData.name.trim() !== "";
+      return form.getValues("name").trim() !== "";
     }
     return true;
   };
 
-  const handleSubmit = () => {
-    if (!formData.name.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Animal name is required",
-        variant: "destructive",
-      });
-      return;
+  const handleNext = () => {
+    if (step === 2) {
+      form.trigger(["name", "species"]);
+      if (!form.formState.isValid) return;
     }
-    createAnimalMutation.mutate(formData);
+    setStep(Math.min(totalSteps, step + 1));
+  };
+
+  const handlePrevious = () => {
+    setStep(Math.max(1, step - 1));
+  };
+
+  const handleSubmit = (data: IntakeFormData) => {
+    createAnimalMutation.mutate({ ...data, photos });
   };
 
   return (
@@ -163,332 +170,419 @@ export default function IntakeWizard() {
             </div>
 
             {/* Step Content */}
-            {step === 1 && (
-              <div data-testid="step-photo-upload">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Upload Animal Photo</h2>
-                <p className="text-muted-foreground mb-6">Add a clear photo of the animal. This will help with identification and adoption listings.</p>
+            <Form {...form}>
+              {step === 1 && (
+                <div data-testid="step-photo-upload">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Upload Animal Photo</h2>
+                  <p className="text-muted-foreground mb-6">Add a clear photo of the animal. This will help with identification and adoption listings.</p>
 
-                <div className="border-2 border-dashed border-border rounded-xl p-12 text-center bg-muted/30">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Camera className="w-8 h-8 text-primary" />
-                  </div>
-                  <p className="font-medium text-foreground mb-1">Photo Upload</p>
-                  <p className="text-sm text-muted-foreground">Photo upload requires storage backend setup. You can add photos after creating the animal record.</p>
-                </div>
+                      <PhotoUpload
+                        existingPhotos={photos}
+                        onPhotosChange={setPhotos}
+                        maxPhotos={5}
+                        className="mb-6"
+                      />
 
-                <div className="mt-6 text-center">
-                  <button 
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors" 
-                    data-testid="button-skip-photo"
-                    onClick={() => setStep(2)}
-                  >
-                    Continue to animal details →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div data-testid="step-basic-info">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Basic Information</h2>
-                <p className="text-muted-foreground mb-6">Enter the animal's basic details.</p>
-
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="md:col-span-2">
-                    <Label htmlFor="name">Animal Name *</Label>
-                    <Input
-                      id="name"
-                      data-testid="input-name"
-                      placeholder="e.g., Buddy"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="species">Species *</Label>
-                    <Select 
-                      value={formData.species} 
-                      onValueChange={(value: any) => handleInputChange("species", value)}
+                  <div className="mt-6 text-center">
+                    <Button 
+                      variant="outline"
+                      data-testid="button-skip-photo"
+                      onClick={() => setStep(2)}
                     >
-                      <SelectTrigger data-testid="select-species">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dog">Dog</SelectItem>
-                        <SelectItem value="cat">Cat</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="breed">Breed</Label>
-                    <Input
-                      id="breed"
-                      data-testid="input-breed"
-                      placeholder="e.g., Labrador Mix"
-                      value={formData.breed}
-                      onChange={(e) => handleInputChange("breed", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="sex">Sex</Label>
-                    <Select 
-                      value={formData.sex} 
-                      onValueChange={(value) => handleInputChange("sex", value)}
-                    >
-                      <SelectTrigger data-testid="select-sex">
-                        <SelectValue placeholder="Select sex" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="unknown">Unknown</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="color">Color</Label>
-                    <Input
-                      id="color"
-                      data-testid="input-color"
-                      placeholder="e.g., Brown/White"
-                      value={formData.color}
-                      onChange={(e) => handleInputChange("color", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="dobEst">Date of Birth (Estimated)</Label>
-                    <Input
-                      id="dobEst"
-                      type="date"
-                      data-testid="input-dob"
-                      value={formData.dobEst}
-                      onChange={(e) => handleInputChange("dobEst", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="microchip">Microchip Number</Label>
-                    <Input
-                      id="microchip"
-                      data-testid="input-microchip"
-                      placeholder="e.g., 985112345678901"
-                      value={formData.microchip}
-                      onChange={(e) => handleInputChange("microchip", e.target.value)}
-                    />
+                      Continue to animal details →
+                    </Button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {step === 3 && (
-              <div data-testid="step-intake-details">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Intake Details</h2>
-                <p className="text-muted-foreground mb-6">Provide intake and housing information.</p>
+              {step === 2 && (
+                <div data-testid="step-basic-info">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Basic Information</h2>
+                  <p className="text-muted-foreground mb-6">Enter the animal's basic details.</p>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="intakeDate">Intake Date</Label>
-                    <Input
-                      id="intakeDate"
-                      type="date"
-                      data-testid="input-intake-date"
-                      value={formData.intakeDate}
-                      onChange={(e) => handleInputChange("intakeDate", e.target.value)}
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Animal Name *</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              data-testid="input-name"
+                              placeholder="e.g., Buddy"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
 
-                  <div>
-                    <Label htmlFor="intakeType">Intake Type</Label>
-                    <Select 
-                      value={formData.attributes.intakeType || ""} 
-                      onValueChange={(value) => handleAttributeChange("intakeType", value)}
-                    >
-                      <SelectTrigger data-testid="select-intake-type">
-                        <SelectValue placeholder="Select intake type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="stray">Stray</SelectItem>
-                        <SelectItem value="owner_surrender">Owner Surrender</SelectItem>
-                        <SelectItem value="transfer_in">Transfer In</SelectItem>
-                        <SelectItem value="confiscation">Confiscation</SelectItem>
-                        <SelectItem value="born_in_care">Born in Care</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="intakeSource">Intake Source</Label>
-                    <Input
-                      id="intakeSource"
-                      data-testid="input-intake-source"
-                      placeholder="e.g., City Shelter, Owner Name"
-                      value={formData.attributes.intakeSource || ""}
-                      onChange={(e) => handleAttributeChange("intakeSource", e.target.value)}
+                    <FormField
+                      control={form.control}
+                      name="species"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Species *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-species">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="dog">Dog</SelectItem>
+                              <SelectItem value="cat">Cat</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
 
-                  <div>
-                    <Label htmlFor="status">Initial Status</Label>
-                    <Select 
-                      value={formData.status} 
-                      onValueChange={(value: any) => handleInputChange("status", value)}
-                    >
-                      <SelectTrigger data-testid="select-status">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="hold">Hold</SelectItem>
-                        <SelectItem value="fostered">Fostered</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Label htmlFor="description">Description / Notes</Label>
-                    <Textarea
-                      id="description"
-                      data-testid="input-description"
-                      placeholder="Behavioral notes, medical history, temperament..."
-                      rows={4}
-                      value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
+                    <FormField
+                      control={form.control}
+                      name="breed"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Breed</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              data-testid="input-breed"
+                              placeholder="e.g., Labrador Mix"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
 
-                  <div className="md:col-span-2">
-                    <Label htmlFor="intakeNotes">Intake-Specific Notes</Label>
-                    <Textarea
-                      id="intakeNotes"
-                      data-testid="input-intake-notes"
-                      placeholder="Circumstances of intake, special considerations..."
-                      rows={3}
-                      value={formData.attributes.intakeNotes || ""}
-                      onChange={(e) => handleAttributeChange("intakeNotes", e.target.value)}
+                    <FormField
+                      control={form.control}
+                      name="sex"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sex</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-sex">
+                                <SelectValue placeholder="Select sex" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="unknown">Unknown</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="color"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Color</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              data-testid="input-color"
+                              placeholder="e.g., Brown/White"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="dobEst"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date of Birth (Estimated)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="date"
+                              data-testid="input-dob"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="microchip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Microchip Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              data-testid="input-microchip"
+                              placeholder="e.g., 985112345678901"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {step === 4 && (
-              <div data-testid="step-review">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Review & Submit</h2>
-                <p className="text-muted-foreground mb-6">Please review the information before submitting.</p>
+              {step === 3 && (
+                <div data-testid="step-intake-details">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Intake Details</h2>
+                  <p className="text-muted-foreground mb-6">Provide intake and housing information.</p>
 
-                <div className="bg-muted/30 rounded-lg p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Name</p>
-                      <p className="font-medium" data-testid="text-review-name">{formData.name || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Species</p>
-                      <p className="font-medium capitalize" data-testid="text-review-species">{formData.species}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Breed</p>
-                      <p className="font-medium" data-testid="text-review-breed">{formData.breed || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Sex</p>
-                      <p className="font-medium capitalize" data-testid="text-review-sex">{formData.sex || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Color</p>
-                      <p className="font-medium" data-testid="text-review-color">{formData.color || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <p className="font-medium capitalize" data-testid="text-review-status">{formData.status}</p>
-                    </div>
-                    {formData.attributes.intakeType && (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="intakeDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Intake Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="date"
+                              data-testid="input-intake-date"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="intakeType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Intake Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-intake-type">
+                                <SelectValue placeholder="Select intake type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="stray">Stray</SelectItem>
+                              <SelectItem value="owner_surrender">Owner Surrender</SelectItem>
+                              <SelectItem value="transfer_in">Transfer In</SelectItem>
+                              <SelectItem value="confiscation">Confiscation</SelectItem>
+                              <SelectItem value="born_in_care">Born in Care</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="intakeSource"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Intake Source</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              data-testid="input-intake-source"
+                              placeholder="e.g., City Shelter, Owner Name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Initial Status</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-status">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="available">Available</SelectItem>
+                              <SelectItem value="hold">Hold</SelectItem>
+                              <SelectItem value="fostered">Fostered</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Description / Notes</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              data-testid="input-description"
+                              placeholder="Behavioral notes, medical history, temperament..."
+                              rows={4}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="intakeNotes"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Intake-Specific Notes</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              data-testid="input-intake-notes"
+                              placeholder="Circumstances of intake, special considerations..."
+                              rows={3}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div data-testid="step-review">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Review & Submit</h2>
+                  <p className="text-muted-foreground mb-6">Please review the information before submitting.</p>
+
+                  <div className="bg-muted/30 rounded-lg p-6 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Intake Type</p>
-                        <p className="font-medium capitalize" data-testid="text-review-intake-type">
-                          {formData.attributes.intakeType.replace(/_/g, ' ')}
-                        </p>
+                        <p className="text-sm text-muted-foreground">Name</p>
+                        <p className="font-medium" data-testid="text-review-name">{form.getValues("name") || "—"}</p>
                       </div>
-                    )}
-                    {formData.attributes.intakeSource && (
                       <div>
-                        <p className="text-sm text-muted-foreground">Intake Source</p>
-                        <p className="font-medium" data-testid="text-review-intake-source">{formData.attributes.intakeSource}</p>
+                        <p className="text-sm text-muted-foreground">Species</p>
+                        <p className="font-medium capitalize" data-testid="text-review-species">{form.getValues("species")}</p>
                       </div>
-                    )}
-                    {formData.microchip && (
-                      <div className="col-span-2">
-                        <p className="text-sm text-muted-foreground">Microchip</p>
-                        <p className="font-medium" data-testid="text-review-microchip">{formData.microchip}</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Breed</p>
+                        <p className="font-medium" data-testid="text-review-breed">{form.getValues("breed") || "—"}</p>
                       </div>
-                    )}
-                    {formData.description && (
-                      <div className="col-span-2">
-                        <p className="text-sm text-muted-foreground">Description</p>
-                        <p className="text-sm" data-testid="text-review-description">{formData.description}</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Sex</p>
+                        <p className="font-medium capitalize" data-testid="text-review-sex">{form.getValues("sex") || "—"}</p>
                       </div>
-                    )}
-                    {formData.attributes.intakeNotes && (
-                      <div className="col-span-2">
-                        <p className="text-sm text-muted-foreground">Intake Notes</p>
-                        <p className="text-sm" data-testid="text-review-intake-notes">{formData.attributes.intakeNotes}</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Color</p>
+                        <p className="font-medium" data-testid="text-review-color">{form.getValues("color") || "—"}</p>
                       </div>
-                    )}
+                      <div>
+                        <p className="text-sm text-muted-foreground">Status</p>
+                        <p className="font-medium capitalize" data-testid="text-review-status">{form.getValues("status")}</p>
+                      </div>
+                      {form.getValues("intakeType") && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Intake Type</p>
+                          <p className="font-medium capitalize" data-testid="text-review-intake-type">
+                            {form.getValues("intakeType").replace(/_/g, ' ')}
+                          </p>
+                        </div>
+                      )}
+                      {form.getValues("intakeSource") && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Intake Source</p>
+                          <p className="font-medium" data-testid="text-review-intake-source">{form.getValues("intakeSource")}</p>
+                        </div>
+                      )}
+                      {form.getValues("microchip") && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground">Microchip</p>
+                          <p className="font-medium" data-testid="text-review-microchip">{form.getValues("microchip")}</p>
+                        </div>
+                      )}
+                      {form.getValues("description") && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground">Description</p>
+                          <p className="text-sm" data-testid="text-review-description">{form.getValues("description")}</p>
+                        </div>
+                      )}
+                      {form.getValues("intakeNotes") && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground">Intake Notes</p>
+                          <p className="text-sm" data-testid="text-review-intake-notes">{form.getValues("intakeNotes")}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <p className="text-sm text-foreground">
+                      By submitting this form, you confirm that all information is accurate to the best of your knowledge.
+                    </p>
                   </div>
                 </div>
+              )}
 
-                <div className="mt-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                  <p className="text-sm text-foreground">
-                    By submitting this form, you confirm that all information is accurate to the best of your knowledge.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="mt-8 flex items-center justify-between pt-6 border-t border-border">
-              <Button 
-                variant="ghost" 
-                onClick={() => setStep(Math.max(1, step - 1))}
-                disabled={step === 1}
-                data-testid="button-previous"
-              >
-                ← Previous
-              </Button>
-              <div className="flex gap-3">
+              {/* Navigation Buttons */}
+              <div className="mt-8 flex items-center justify-between pt-6 border-t border-border">
                 <Button 
-                  variant="outline" 
-                  data-testid="button-cancel"
-                  onClick={() => setLocation("/animals")}
+                  variant="ghost" 
+                  onClick={handlePrevious}
+                  disabled={step === 1}
+                  data-testid="button-previous"
                 >
-                  Cancel
+                  ← Previous
                 </Button>
-                {step < totalSteps ? (
+                <div className="flex gap-3">
                   <Button 
-                    onClick={() => setStep(Math.min(totalSteps, step + 1))}
-                    disabled={!canGoNext()}
-                    data-testid="button-next"
+                    variant="outline" 
+                    data-testid="button-cancel"
+                    onClick={() => setLocation("/animals")}
                   >
-                    Next Step →
+                    Cancel
                   </Button>
-                ) : (
-                  <Button 
-                    onClick={handleSubmit}
-                    disabled={createAnimalMutation.isPending}
-                    data-testid="button-submit"
-                  >
-                    {createAnimalMutation.isPending ? "Creating..." : "Create Animal"}
-                  </Button>
-                )}
+                  {step < totalSteps ? (
+                    <Button 
+                      onClick={handleNext}
+                      disabled={!canGoNext()}
+                      data-testid="button-next"
+                    >
+                      Next Step →
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={form.handleSubmit(handleSubmit)}
+                      disabled={createAnimalMutation.isPending}
+                      data-testid="button-submit"
+                    >
+                      {createAnimalMutation.isPending ? "Creating..." : "Create Animal"}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
+            </Form>
           </CardContent>
         </Card>
 
