@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4Paws Mobile Experience Audit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .audit-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .device-frame {
+            border: 2px solid #333;
+            border-radius: 20px;
+            margin: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .device-header {
+            background: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .device-content {
+            background: white;
+            height: 600px;
+            overflow: auto;
+        }
+        .mobile { width: 375px; height: 667px; }
+        .tablet { width: 768px; height: 1024px; }
+        .desktop { width: 1200px; height: 800px; }
+        
+        .audit-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        .checklist li:before {
+            content: "❌";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .checklist li.pass:before {
+            content: "✅";
+        }
+        
+        .touch-target {
+            display: inline-block;
+            padding: 12px 16px;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            margin: 5px;
+            min-width: 44px;
+            min-height: 44px;
+            text-align: center;
+            line-height: 20px;
+        }
+        .touch-target.small {
+            padding: 8px 12px;
+            min-width: 32px;
+            min-height: 32px;
+        }
+        .touch-target.large {
+            padding: 16px 20px;
+            min-width: 56px;
+            min-height: 56px;
+        }
+        
+        .responsive-test {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .button-test {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .form-test {
+            max-width: 400px;
+        }
+        
+        .form-test input, .form-test select, .form-test textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        .navigation-test {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .nav-item {
+            padding: 12px 16px;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="audit-container">
+        <h1>📱 4Paws Mobile Experience Audit</h1>
+        
+        <!-- Device Testing Frames -->
+        <div class="responsive-test">
+            <div class="device-frame mobile">
+                <div class="device-header">📱 Mobile (375x667)</div>
+                <div class="device-content">
+                    <h3>Mobile View</h3>
+                    <p>Testing mobile layout and touch targets</p>
+                    
+                    <!-- Touch Target Test -->
+                    <div class="button-test">
+                        <div class="touch-target">Good</div>
+                        <div class="touch-target small">Too Small</div>
+                        <div class="touch-target large">Large</div>
+                    </div>
+                    
+                    <!-- Navigation Test -->
+                    <div class="navigation-test">
+                        <a href="#" class="nav-item">🏠</a>
+                        <a href="#" class="nav-item">🐕</a>
+                        <a href="#" class="nav-item">💊</a>
+                        <a href="#" class="nav-item">📊</a>
+                    </div>
+                    
+                    <!-- Form Test -->
+                    <div class="form-test">
+                        <input type="text" placeholder="Animal Name" />
+                        <select>
+                            <option>Select Species</option>
+                            <option>Dog</option>
+                            <option>Cat</option>
+                        </select>
+                        <textarea placeholder="Notes"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="device-frame tablet">
+                <div class="device-header">📱 Tablet (768x1024)</div>
+                <div class="device-content">
+                    <h3>Tablet View</h3>
+                    <p>Testing tablet layout and touch interactions</p>
+                    
+                    <!-- Card Grid Test -->
+                    <div class="responsive-test">
+                        <div class="card">
+                            <h4>Animal Card</h4>
+                            <p>This is a test card for tablet layout</p>
+                        </div>
+                        <div class="card">
+                            <h4>Medical Card</h4>
+                            <p>Another test card</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="device-frame desktop">
+                <div class="device-header">🖥️ Desktop (1200x800)</div>
+                <div class="device-content">
+                    <h3>Desktop View</h3>
+                    <p>Testing desktop layout and hover effects</p>
+                    
+                    <!-- Desktop Layout Test -->
+                    <div style="display: grid; grid-template-columns: 250px 1fr; gap: 20px; height: 100%;">
+                        <div style="background: #f8f9fa; padding: 20px;">
+                            <h4>Sidebar</h4>
+                            <ul>
+                                <li>Dashboard</li>
+                                <li>Animals</li>
+                                <li>Medical</li>
+                                <li>Reports</li>
+                            </ul>
+                        </div>
+                        <div style="padding: 20px;">
+                            <h4>Main Content</h4>
+                            <p>Desktop layout with sidebar and main content area</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audit Checklist -->
+        <div class="audit-section">
+            <h2>📋 Mobile Experience Checklist</h2>
+            <ul class="checklist">
+                <li>Touch targets are at least 44px (minimum 44x44px)</li>
+                <li>Text is readable without zooming (minimum 16px)</li>
+                <li>Forms are mobile-friendly with appropriate input types</li>
+                <li>Navigation is accessible with thumb-friendly spacing</li>
+                <li>Content fits within viewport without horizontal scroll</li>
+                <li>Images are responsive and load appropriate sizes</li>
+                <li>Charts and tables are readable on small screens</li>
+                <li>Modals and dialogs work on mobile screens</li>
+                <li>Loading states are visible and informative</li>
+                <li>Error messages are clear and actionable</li>
+                <li>Success feedback is visible and satisfying</li>
+                <li>Keyboard navigation works on mobile devices</li>
+                <li>Orientation changes are handled gracefully</li>
+                <li>Performance is acceptable on mobile networks</li>
+                <li>Accessibility features work on mobile devices</li>
+            </ul>
+        </div>
+        
+        <!-- Responsive Design Principles -->
+        <div class="audit-section">
+            <h2>🎨 Responsive Design Principles</h2>
+            <div class="responsive-test">
+                <div class="card">
+                    <h4>Mobile-First</h4>
+                    <p>Start with mobile design and scale up to larger screens</p>
+                </div>
+                <div class="card">
+                    <h4>Touch-Friendly</h4>
+                    <p>All interactive elements should be easy to tap with fingers</p>
+                </div>
+                <div class="card">
+                    <h4>Performance</h4>
+                    <p>Optimize for mobile networks and slower devices</p>
+                </div>
+                <div class="card">
+                    <h4>Accessibility</h4>
+                    <p>Ensure all features work with assistive technologies</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Testing Instructions -->
+        <div class="audit-section">
+            <h2>🧪 Testing Instructions</h2>
+            <ol>
+                <li><strong>Open Developer Tools</strong> and switch to mobile view</li>
+                <li><strong>Test Touch Targets</strong> - All buttons should be at least 44px</li>
+                <li><strong>Test Forms</strong> - Inputs should be easy to use on mobile</li>
+                <li><strong>Test Navigation</strong> - Should be thumb-friendly</li>
+                <li><strong>Test Responsiveness</strong> - Layout should adapt to different screen sizes</li>
+                <li><strong>Test Performance</strong> - Should load quickly on mobile networks</li>
+                <li><strong>Test Accessibility</strong> - Should work with screen readers</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>
