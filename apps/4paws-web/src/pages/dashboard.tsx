@@ -529,16 +529,16 @@ export default function Dashboard() {
        * - Secondary (yellow): Fostered
        * - Warning/Destructive: Overdue tasks
        */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
         {/* CARD 1: Total Animals in Care */}
-        <Card data-testid="card-stat-total">
-          <CardContent className="pt-6">
+        <Card data-testid="card-stat-total" className="responsive-card">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-muted-foreground">Animals in Care</p>
-              <Dog className="w-5 h-5 text-primary" />
+              <p className="text-xs lg:text-sm font-medium text-muted-foreground">Animals in Care</p>
+              <Dog className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
             </div>
-            <p className="text-3xl font-bold text-foreground" data-testid="text-total-animals">{stats.totalAnimals}</p>
-            <p className="text-xs text-success mt-2">
+            <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-total-animals">{stats.totalAnimals}</p>
+            <p className="text-xs text-success mt-1 lg:mt-2 hidden lg:block">
               <TrendingUp className="w-3 h-3 inline mr-1" />
               Active animals
             </p>
@@ -546,38 +546,38 @@ export default function Dashboard() {
         </Card>
 
         {/* CARD 2: Available for Adoption */}
-        <Card data-testid="card-stat-available">
-          <CardContent className="pt-6">
+        <Card data-testid="card-stat-available" className="responsive-card">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-muted-foreground">Available</p>
-              <CheckCircle className="w-5 h-5 text-success" />
+              <p className="text-xs lg:text-sm font-medium text-muted-foreground">Available</p>
+              <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5 text-success" />
             </div>
-            <p className="text-3xl font-bold text-foreground" data-testid="text-available-animals">{stats.available}</p>
-            <p className="text-xs text-muted-foreground mt-2">Ready for adoption</p>
+            <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-available-animals">{stats.available}</p>
+            <p className="text-xs text-muted-foreground mt-1 lg:mt-2 hidden lg:block">Ready for adoption</p>
           </CardContent>
         </Card>
 
         {/* CARD 3: In Foster Homes */}
-        <Card data-testid="card-stat-fostered">
-          <CardContent className="pt-6">
+        <Card data-testid="card-stat-fostered" className="responsive-card">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-muted-foreground">In Foster</p>
-              <HeartPulse className="w-5 h-5 text-secondary" />
+              <p className="text-xs lg:text-sm font-medium text-muted-foreground">In Foster</p>
+              <HeartPulse className="w-4 h-4 lg:w-5 lg:h-5 text-secondary" />
             </div>
-            <p className="text-3xl font-bold text-foreground" data-testid="text-fostered-animals">{stats.fostered}</p>
-            <p className="text-xs text-muted-foreground mt-2">With fosters</p>
+            <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-fostered-animals">{stats.fostered}</p>
+            <p className="text-xs text-muted-foreground mt-1 lg:mt-2 hidden lg:block">With fosters</p>
           </CardContent>
         </Card>
 
         {/* CARD 4: Overdue Medical Tasks - Requires Attention */}
-        <Card data-testid="card-stat-overdue">
-          <CardContent className="pt-6">
+        <Card data-testid="card-stat-overdue" className="responsive-card">
+          <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-muted-foreground">Medical Tasks Due</p>
-              <Stethoscope className="w-5 h-5 text-warning" />
+              <p className="text-xs lg:text-sm font-medium text-muted-foreground">Medical Tasks Due</p>
+              <Stethoscope className="w-4 h-4 lg:w-5 lg:h-5 text-warning" />
             </div>
-            <p className="text-3xl font-bold text-foreground" data-testid="text-overdue-tasks">{stats.overdueTasks}</p>
-            <p className="text-xs text-destructive mt-2">
+            <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-overdue-tasks">{stats.overdueTasks}</p>
+            <p className="text-xs text-destructive mt-1 lg:mt-2 hidden lg:block">
               <AlertTriangle className="w-3 h-3 inline mr-1" />
               {stats.overdueTasks} overdue
             </p>
@@ -782,17 +782,17 @@ export default function Dashboard() {
           </div>
 
           {/* Charts Grid */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 lg:gap-6 lg:grid-cols-2">
             {/* Species Distribution Pie Chart */}
-            <Card>
+            <Card className="responsive-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-sm lg:text-base">
+                  <PieChart className="w-4 h-4 lg:w-5 lg:h-5" />
                   Species Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64">
+                <div className="h-48 lg:h-64 chart-container">
                   {speciesData.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPieChart>

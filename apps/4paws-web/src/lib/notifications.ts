@@ -355,3 +355,24 @@ export class NotificationService {
 
 // Export singleton instance
 export const notificationService = new NotificationService();
+
+// React hook for using notifications
+export const useNotifications = () => {
+  return {
+    notifications: notificationService.getNotifications(),
+    unreadCount: notificationService.getUnreadCount(),
+    addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'status'>) => 
+      notificationService.addNotification(notification),
+    markAsRead: (id: string) => notificationService.markAsRead(id),
+    markAllAsRead: () => notificationService.markAllAsRead(),
+    dismissNotification: (id: string) => notificationService.dismissNotification(id),
+    clearAllNotifications: () => notificationService.clearAll(),
+    getFilteredNotifications: (filters: NotificationFilters) => 
+      notificationService.getNotifications().filter(notification => {
+        if (filters.type && notification.type !== filters.type) return false;
+        if (filters.priority && notification.priority !== filters.priority) return false;
+        if (filters.status && notification.status !== filters.status) return false;
+        return true;
+      }),
+  };
+};

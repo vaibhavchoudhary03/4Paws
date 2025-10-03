@@ -263,6 +263,23 @@ export const EmptyErrorState: React.FC<{
   </div>
 );
 
+// Data loading state
+export const DataLoadingState: React.FC<{
+  message?: string;
+  className?: string;
+}> = ({ message = "Loading data...", className }) => {
+  return (
+    <div className={cn("flex flex-col items-center justify-center p-8", className)}>
+      <div className="text-center space-y-4">
+        <div className="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 text-blue-600 animate-spin" />
+        </div>
+        <p className="text-gray-600">{message}</p>
+      </div>
+    </div>
+  );
+};
+
 // Error boundary fallback
 export const ErrorBoundaryFallback: React.FC<{
   error?: Error;
