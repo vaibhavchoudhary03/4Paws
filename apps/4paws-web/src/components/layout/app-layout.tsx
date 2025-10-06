@@ -1,11 +1,12 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import Sidebar from "./sidebar";
 import MobileNav from "./mobile-navigation";
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Search, Menu, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TouchButton } from "@/components/ui/touch-button";
 import NotificationDropdown from "@/components/ui/notification-dropdown";
+import QuickIntakeDialog from "@/components/ui/quick-intake-dialog";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -54,14 +55,16 @@ export default function AppLayout({ children, title, subtitle, actions }: AppLay
                 </div>
               )}
               <NotificationDropdown data-testid="notification-dropdown" />
-              <TouchButton
-                className="hidden lg:flex"
-                data-testid="button-quick-intake"
-                icon={<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-5 h-5" />}
-                touchTarget={false}
-              >
-                Quick Intake
-              </TouchButton>
+              <QuickIntakeDialog>
+                <TouchButton
+                  className="hidden lg:flex"
+                  data-testid="button-quick-intake"
+                  icon={<Plus className="w-5 h-5" />}
+                  touchTarget={false}
+                >
+                  Quick Intake
+                </TouchButton>
+              </QuickIntakeDialog>
             </div>
           </div>
         </header>

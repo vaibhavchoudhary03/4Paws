@@ -26,13 +26,15 @@ import {
   X,
   Users,
   FileText,
-  Settings
+  Settings,
+  Plus
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
 import { useNotifications } from '../../lib/notifications';
 import UserAccountDropdown from '../ui/user-account-dropdown';
+import QuickIntakeDialog from '../ui/quick-intake-dialog';
 
 interface MobileNavItem {
   id: string;
@@ -161,6 +163,17 @@ const MobileNav: React.FC = () => {
               <span className="text-xs mt-1 font-medium">{item.label}</span>
             </button>
           ))}
+          
+          {/* Quick Intake Button */}
+          <QuickIntakeDialog>
+            <button
+              className="flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] text-orange-600 hover:text-orange-900 hover:bg-orange-50"
+              aria-label="Quick intake"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="text-xs mt-1 font-medium">Intake</span>
+            </button>
+          </QuickIntakeDialog>
           
           {/* More Menu Button */}
           <button
