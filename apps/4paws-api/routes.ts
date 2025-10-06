@@ -38,7 +38,7 @@ import session from "express-session";
 import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateUser, hashPassword } from "./auth";
-import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema, outcomes, animals, adoptions as adoptionsTable, medicalSchedule, people } from "@shared/schema";
+import { insertAnimalSchema, insertPersonSchema, insertMedicalScheduleSchema, insertApplicationSchema, insertAdoptionSchema, insertNoteSchema, insertPhotoSchema, outcomes, animals, adoptions as adoptionsTable, medicalSchedule, people } from "../../shared/schema";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { z } from "zod";
