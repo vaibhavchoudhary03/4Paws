@@ -26,7 +26,7 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "../lib/auth-context";
+import { useAuth } from "../lib/auth-context-simple";
 import { useToast } from "../hooks/use-toast";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -145,14 +145,13 @@ export default function Signup() {
     setSubmitting(true);
     
     try {
-      const result = await signUp({
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        organizationId: data.organizationId,
-        message: data.message,
-      });
+      const result = await signUp(
+        data.email,
+        data.password,
+        data.firstName,
+        data.lastName,
+        data.organizationId
+      );
 
       if (result.success) {
         toast({

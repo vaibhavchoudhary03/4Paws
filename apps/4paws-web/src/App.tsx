@@ -46,7 +46,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ToastProvider } from "./components/ui/enhanced-toast";
-import { AuthProvider } from "./lib/auth-context";
+import { AuthProvider } from "./lib/auth-context-simple";
 
 // Page imports - Each represents a major application feature
 import NotFound from "./pages/not-found";

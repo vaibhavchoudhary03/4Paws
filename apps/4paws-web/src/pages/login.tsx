@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "../lib/auth-context";
+import { useAuth } from "../lib/auth-context-simple";
 import { useToast } from "../hooks/use-toast";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -12,7 +12,7 @@ import { ArrowLeft, Building2, Users, Shield, LogIn } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { signIn, user, getAvailableOrganizations } = useAuth();
+  const { signIn, user } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -117,9 +117,9 @@ export default function Login() {
             <div className="mt-6 p-4 bg-accent rounded-lg border border-border">
               <p className="text-xs font-semibold text-foreground mb-2">Demo Credentials:</p>
               <div className="text-xs text-muted-foreground space-y-1">
-                <p>• Admin: staff@demo.4paws.org / demo-only</p>
-                <p>• Foster: foster@demo.4paws.org / demo-only</p>
-                <p>• Volunteer: volunteer@demo.4paws.org / demo-only</p>
+                <p>• Admin: staff@demo.4paws.org / admin123</p>
+                <p>• Access: Full admin access to 4Paws Animal Shelter</p>
+                <p>• Data: All seeded animals, medical records, and reports</p>
               </div>
             </div>
           </CardContent>

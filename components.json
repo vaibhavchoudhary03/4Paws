@@ -5,7 +5,7 @@
     "tsx": true,
     "tailwind": {
       "config": "tailwind.config.ts",
-      "css": "client/src/index.css",
+      "css": "apps/4paws-web/src/index.css",
       "baseColor": "neutral",
       "cssVariables": true,
       "prefix": ""
