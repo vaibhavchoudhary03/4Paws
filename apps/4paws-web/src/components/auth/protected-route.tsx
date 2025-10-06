@@ -20,7 +20,7 @@
 
 import { ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '../../lib/auth-context';
+import { useAuth } from '../../lib/auth-context-simple';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { ArrowLeft, Shield, AlertTriangle } from 'lucide-react';

@@ -12,6 +12,7 @@ import {
   BarChart3, 
   Settings 
 } from "lucide-react";
+import UserAccountDropdown from "../ui/user-account-dropdown";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -82,18 +83,8 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-muted transition-colors cursor-pointer" data-testid="button-user-menu">
-            <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">ST</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground" data-testid="text-user-name">Staff User</p>
-              <p className="text-xs text-muted-foreground" data-testid="text-user-role">Admin</p>
-            </div>
-          </div>
-        </div>
+        {/* User Account Dropdown */}
+        <UserAccountDropdown variant="sidebar" />
       </div>
     </aside>
   );

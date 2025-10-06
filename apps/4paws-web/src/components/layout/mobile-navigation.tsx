@@ -32,6 +32,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
 import { useNotifications } from '../../lib/notifications';
+import UserAccountDropdown from '../ui/user-account-dropdown';
 
 interface MobileNavItem {
   id: string;
@@ -216,6 +217,11 @@ const MobileNav: React.FC = () => {
                   )}
                 </button>
               ))}
+              
+              {/* User Account Section */}
+              <div className="pt-2 border-t border-gray-200">
+                <UserAccountDropdown variant="mobile" />
+              </div>
             </div>
           </div>
         </div>
