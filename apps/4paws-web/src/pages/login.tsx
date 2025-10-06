@@ -1,40 +1,52 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { authApi } from "../lib/api";
+import { useAuth } from "../lib/auth-context";
 import { useToast } from "../hooks/use-toast";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Badge } from "../components/ui/badge";
+import { ArrowLeft, Building2, Users, Shield, LogIn } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { signIn, user, getAvailableOrganizations } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const loginMutation = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const result = await signIn(email, password);
+      
+      if (result.success) {
+        toast({
+          title: "Login successful",
+          description: "Welcome to 4Paws!",
+        });
+        setLocation("/dashboard");
+      } else {
+        toast({
+          title: "Login failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Login successful",
-        description: "Welcome to 4Paws!",
-      });
-      setLocation("/dashboard");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid credentials",
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    loginMutation.mutate({ email, password });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,10 +106,10 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loginMutation.isPending}
+                disabled={loading}
                 data-testid="button-login"
               >
-                {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
@@ -115,7 +127,16 @@ export default function Login() {
 
         {/* Footer */}
         <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>Multi-tenant shelter management • Secure & RBAC-enabled</p>
+          <p>
+            Don't have an account?{" "}
+            <button
+              onClick={() => setLocation("/signup")}
+              className="text-primary hover:text-orange-600 transition-colors font-medium"
+            >
+              Create one here
+            </button>
+          </p>
+          <p className="mt-2">Multi-tenant shelter management • Secure & RBAC-enabled</p>
         </div>
       </div>
     </div>

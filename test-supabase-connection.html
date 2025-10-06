@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const supabaseUrl = 'https://uvmzvttewgcmutghbyoy.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2bXp2dHRld2djbXV0Z2hieW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MTkwMTQsImV4cCI6MjA3NDk5NTAxNH0.6vo8Z8CRG7ux-Yt1FHcOtZwuUAHGLw-mpvbPKfdlkUE';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        async function testConnection() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test 1: Basic connection
+                resultsDiv.innerHTML += '<h3>Test 1: Basic Connection</h3>';
+                resultsDiv.innerHTML += '<p>Testing Supabase connection...</p>';
+                
+                // Test 2: Check if organizations table exists
+                resultsDiv.innerHTML += '<h3>Test 2: Organizations Table</h3>';
+                const { data: orgs, error: orgError } = await supabase
+                    .from('organizations')
+                    .select('*')
+                    .limit(1);
+                
+                if (orgError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Organizations Error: ${orgError.message}</p>`;
+                    resultsDiv.innerHTML += `<p style="color: red;">Error Code: ${orgError.code}</p>`;
+                    resultsDiv.innerHTML += `<p style="color: red;">Error Details: ${JSON.stringify(orgError.details)}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">✅ Organizations table accessible</p>`;
+                    resultsDiv.innerHTML += `<p>Found ${orgs.length} organizations</p>`;
+                }
+                
+                // Test 3: Try to get all organizations
+                resultsDiv.innerHTML += '<h3>Test 3: All Organizations</h3>';
+                const { data: allOrgs, error: allOrgsError } = await supabase
+                    .from('organizations')
+                    .select('*')
+                    .order('name');
+                
+                if (allOrgsError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ All Organizations Error: ${allOrgsError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">✅ All organizations fetched successfully</p>`;
+                    resultsDiv.innerHTML += `<p>Organizations: ${JSON.stringify(allOrgs, null, 2)}</p>`;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red;">❌ Unexpected Error: ${error.message}</p>`;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>

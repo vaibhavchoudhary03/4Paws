@@ -60,6 +60,7 @@ export const animals = pgTable('animals', {
   behaviorNotes: text('behavior_notes'),
   medicalNotes: text('medical_notes'),
   specialNeeds: text('special_needs'),
+  additionalNotes: text('additional_notes'),
   isSpayedNeutered: boolean('is_spayed_neutered').default(false),
   isVaccinated: boolean('is_vaccinated').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),

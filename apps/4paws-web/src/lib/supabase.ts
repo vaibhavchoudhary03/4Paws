@@ -29,6 +29,7 @@ export interface Animal {
   behavior_notes?: string;
   medical_notes?: string;
   special_needs?: string;
+  additional_notes?: string;
   is_spayed_neutered?: boolean;
   is_vaccinated?: boolean;
   created_at: string;

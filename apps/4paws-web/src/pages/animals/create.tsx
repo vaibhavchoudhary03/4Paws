@@ -74,6 +74,7 @@ const animalSchema = z.object({
   behavior_notes: z.string().max(1000, "Behavior notes too long").optional(),
   medical_notes: z.string().max(1000, "Medical notes too long").optional(),
   special_needs: z.string().max(1000, "Special needs too long").optional(),
+  additional_notes: z.string().max(1000, "Additional notes too long").optional(),
   is_spayed_neutered: z.boolean().optional(),
   is_vaccinated: z.boolean().optional(),
   photos: z.array(z.string()).optional(),
@@ -453,6 +454,21 @@ export default function CreateAnimal() {
                   />
                   {errors.special_needs && (
                     <p className="text-sm text-destructive mt-1">{errors.special_needs.message}</p>
+                  )}
+                </div>
+
+                {/* Additional Notes */}
+                <div>
+                  <Label htmlFor="additional_notes">Additional Notes</Label>
+                  <Textarea
+                    id="additional_notes"
+                    {...register("additional_notes")}
+                    placeholder="Enter any additional notes or comments"
+                    rows={3}
+                    className={errors.additional_notes ? "border-destructive" : ""}
+                  />
+                  {errors.additional_notes && (
+                    <p className="text-sm text-destructive mt-1">{errors.additional_notes.message}</p>
                   )}
                 </div>
 

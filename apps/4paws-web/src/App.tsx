@@ -46,10 +46,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { ToastProvider } from "./components/ui/enhanced-toast";
+import { AuthProvider } from "./lib/auth-context";
 
 // Page imports - Each represents a major application feature
 import NotFound from "./pages/not-found";
 import Login from "./pages/login";
+import Signup from "./pages/signup";
 import Dashboard from "./pages/dashboard";
 import AnimalsIndex from "./pages/animals/index";
 import AnimalDetail from "./pages/animals/[id]";
@@ -121,6 +123,7 @@ function Router() {
       {/* Authentication routes - Public access */}
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
       
       {/* Main dashboard - First page after login */}
       <Route path="/dashboard" component={Dashboard} />
@@ -196,12 +199,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ToastProvider>
-          <Toaster />
-          <Router />
-        </ToastProvider>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <ToastProvider>
+            <Toaster />
+            <Router />
+          </ToastProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
