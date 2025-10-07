@@ -144,8 +144,8 @@ const MobileNav: React.FC = () => {
               className={cn(
                 'flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px]',
                 isActive(item.path)
-                  ? `${item.color} bg-gray-100`
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? `${item.color} bg-kirby-primary/10`
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               )}
               aria-label={item.label}
             >
@@ -167,7 +167,7 @@ const MobileNav: React.FC = () => {
           {/* Quick Intake Button */}
           <QuickIntakeDialog>
             <button
-              className="flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] text-orange-600 hover:text-orange-900 hover:bg-orange-50"
+              className="flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] bg-gradient-to-br from-kirby-primary to-kirby-primary-dark text-white hover:from-kirby-primary-dark hover:to-kirby-primary shadow-lg hover:shadow-xl"
               aria-label="Quick intake"
             >
               <Plus className="w-5 h-5" />
@@ -178,7 +178,7 @@ const MobileNav: React.FC = () => {
           {/* More Menu Button */}
           <button
             onClick={() => setIsMenuOpen(true)}
-            className="flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            className="flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-muted/50"
             aria-label="More options"
           >
             <Menu className="w-5 h-5" />
@@ -213,8 +213,8 @@ const MobileNav: React.FC = () => {
                   className={cn(
                     'w-full flex items-center justify-between p-4 rounded-lg transition-all duration-200 min-h-[44px]',
                     isActive(item.path)
-                      ? `${item.color} bg-gray-100`
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? `${item.color} bg-kirby-primary/10`
+                      : 'text-foreground hover:bg-muted/50'
                   )}
                 >
                   <div className="flex items-center space-x-3">

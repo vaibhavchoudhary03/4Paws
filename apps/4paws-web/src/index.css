@@ -11,23 +11,23 @@
   --card-foreground: hsl(222, 47%, 11%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(222, 47%, 11%);
-  --primary: hsl(20, 91%, 53%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(45, 93%, 55%);
-  --secondary-foreground: hsl(222, 47%, 11%);
-  --muted: hsl(210, 40%, 96%);
-  --muted-foreground: hsl(215, 16%, 47%);
-  --accent: hsl(33, 100%, 97%);
-  --accent-foreground: hsl(222, 47%, 11%);
-  --destructive: hsl(0, 72%, 51%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --success: hsl(142, 71%, 45%);
-  --success-foreground: hsl(0, 0%, 100%);
-  --warning: hsl(38, 92%, 50%);
-  --warning-foreground: hsl(0, 0%, 100%);
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  --ring: hsl(20, 91%, 53%);
+  --primary: 25 85% 59%; /* Kirby primary orange #f28c3c */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 85% 61%; /* Kirby secondary gold #f5b041 */
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 45 85% 63%; /* Kirby accent yellow #f2c94c */
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 45 85% 63%; /* Use Kirby accent for success */
+  --success-foreground: 222 47% 11%;
+  --warning: 40 85% 61%; /* Use Kirby secondary for warning */
+  --warning-foreground: 222 47% 11%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 25 85% 59%; /* Kirby primary for focus rings */
   --radius: 0.75rem;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
@@ -39,19 +39,19 @@
   --card-foreground: hsl(210, 40%, 98%);
   --popover: hsl(222, 47%, 11%);
   --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(20, 91%, 53%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(45, 93%, 55%);
-  --secondary-foreground: hsl(222, 47%, 11%);
-  --muted: hsl(217, 33%, 17%);
-  --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(217, 33%, 17%);
-  --accent-foreground: hsl(210, 40%, 98%);
-  --destructive: hsl(0, 62%, 30%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(217, 33%, 17%);
-  --input: hsl(217, 33%, 17%);
-  --ring: hsl(20, 91%, 53%);
+  --primary: 25 85% 59%; /* Kirby primary orange - same as light mode */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 85% 61%; /* Kirby secondary gold - same as light mode */
+  --secondary-foreground: 222 47% 11%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 45 85% 63%; /* Kirby accent yellow - same as light mode */
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --ring: 25 85% 59%; /* Kirby primary for focus rings */
 }
 
 @layer base {

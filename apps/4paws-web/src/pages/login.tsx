@@ -56,13 +56,13 @@ export default function Login() {
           <CardContent className="pt-8 pb-8">
             {/* Logo and Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-10 h-10 text-primary-foreground">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-kirby-primary to-kirby-primary-dark rounded-2xl mb-4 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-10 h-10 text-white">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
                 </svg>
               </div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Kirby</h1>
-              <p className="text-muted-foreground">Animal Shelter Management</p>
+              <p className="text-muted-foreground font-medium">Animal Shelter Management</p>
             </div>
 
             {/* Login Form */}
@@ -105,7 +105,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-kirby-primary to-kirby-primary-dark hover:from-kirby-primary-dark hover:to-kirby-primary text-white shadow-lg hover:shadow-xl transition-all duration-300"
                 disabled={loading}
                 data-testid="button-login"
               >
@@ -114,7 +114,7 @@ export default function Login() {
             </form>
 
             {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-accent rounded-lg border border-border">
+            <div className="mt-6 p-4 bg-gradient-to-r from-kirby-accent/20 to-kirby-accent/15 rounded-lg border border-kirby-accent/30">
               <p className="text-xs font-semibold text-foreground mb-2">Demo Credentials:</p>
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>• Admin: staff@demo.kirby.org / admin123</p>

@@ -211,6 +211,7 @@ export default function MedicalIndex() {
                 size="sm" 
                 data-testid="button-add-task"
                 onClick={() => setLocation("/medical/create")}
+                className="bg-gradient-to-r from-kirby-primary to-kirby-primary-dark hover:from-kirby-primary-dark hover:to-kirby-primary text-white shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
@@ -249,7 +250,7 @@ export default function MedicalIndex() {
               <CardContent className="p-0">
                 <div className="divide-y divide-border">
                   {overdueTasks.map((task: any) => (
-                    <div key={task.id} className="p-4 hover:bg-accent/50 transition-colors" data-testid={`task-overdue-${task.id}`}>
+                    <div key={task.id} className="p-4 hover:bg-destructive/10 transition-all duration-200 border-l-4 border-destructive/30" data-testid={`task-overdue-${task.id}`}>
                       <div className="flex items-start gap-4">
                         <input 
                           type="checkbox" 
@@ -292,7 +293,7 @@ export default function MedicalIndex() {
                           </Button>
                           <Button 
                             size="sm" 
-                            className="bg-success hover:bg-success/90"
+                            className="bg-gradient-to-r from-kirby-accent to-kirby-accent-dark hover:from-kirby-accent-dark hover:to-kirby-accent text-white shadow-md hover:shadow-lg transition-all duration-300"
                             onClick={() => handleMarkDone(task.id)}
                             data-testid={`button-done-${task.id}`}
                           >
@@ -334,7 +335,7 @@ export default function MedicalIndex() {
               ) : (
                 <div className="divide-y divide-border">
                   {todayTasks.map((task: any) => (
-                    <div key={task.id} className="p-4 hover:bg-accent/50 transition-colors" data-testid={`task-today-${task.id}`}>
+                    <div key={task.id} className="p-4 hover:bg-kirby-primary/10 transition-all duration-200 border-l-4 border-kirby-primary/30" data-testid={`task-today-${task.id}`}>
                       <div className="flex items-start gap-4">
                         <input 
                           type="checkbox" 
@@ -371,7 +372,7 @@ export default function MedicalIndex() {
                           </Button>
                           <Button 
                             size="sm" 
-                            className="bg-success hover:bg-success/90"
+                            className="bg-gradient-to-r from-kirby-accent to-kirby-accent-dark hover:from-kirby-accent-dark hover:to-kirby-accent text-white shadow-md hover:shadow-lg transition-all duration-300"
                             onClick={() => handleMarkDone(task.id)}
                           >
                             Mark Done

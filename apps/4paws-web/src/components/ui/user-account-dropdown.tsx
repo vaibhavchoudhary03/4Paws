@@ -190,12 +190,12 @@ export default function UserAccountDropdown({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start p-3 h-auto hover:bg-gray-50 transition-colors"
+              className="w-full justify-start p-3 h-auto hover:bg-muted/50 transition-colors"
               data-testid="button-user-menu-mobile"
             >
               <div className="flex items-center space-x-3 w-full">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-medium text-blue-600">
+                <div className="w-8 h-8 bg-kirby-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-medium text-kirby-primary-dark">
                     {getUserInitials(getUserDisplayName())}
                   </span>
                 </div>

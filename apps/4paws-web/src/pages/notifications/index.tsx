@@ -153,15 +153,15 @@ export default function NotificationsPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'critical':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
       case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary/20';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-kirby-secondary/10 text-kirby-secondary-dark border-kirby-secondary/20';
       case 'low':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-kirby-accent/10 text-kirby-accent-dark border-kirby-accent/20';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -372,9 +372,9 @@ export default function NotificationsPage() {
                 {filteredNotifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-gray-50 transition-colors ${
-                      !notification.isRead ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                    } ${selectedNotifications.includes(notification.id) ? 'bg-blue-100' : ''}`}
+                    className={`p-4 hover:bg-muted/50 transition-colors ${
+                      !notification.isRead ? 'bg-kirby-primary/5 border-l-4 border-l-kirby-primary' : ''
+                    } ${selectedNotifications.includes(notification.id) ? 'bg-kirby-primary/10' : ''}`}
                     data-testid={`notification-${notification.id}`}
                   >
                     <div className="flex items-start gap-4">

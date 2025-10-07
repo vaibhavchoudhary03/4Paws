@@ -153,10 +153,10 @@ export default function AnimalsIndex() {
    */
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available': return 'bg-success/10 text-success';  // Green (positive, ready)
-      case 'fostered': return 'bg-secondary/20 text-secondary-foreground';  // Yellow (temporary)
-      case 'hold': return 'bg-warning/20 text-warning';  // Orange (caution)
-      default: return 'bg-muted text-muted-foreground';  // Gray (neutral/archived)
+      case 'available': return 'bg-kirby-accent/30 text-foreground border border-kirby-accent/40 font-medium';  // Yellow background, dark text
+      case 'fostered': return 'bg-kirby-secondary/30 text-foreground border border-kirby-secondary/40 font-medium';  // Gold background, dark text
+      case 'hold': return 'bg-kirby-primary/30 text-foreground border border-kirby-primary/40 font-medium';  // Orange background, dark text
+      default: return 'bg-muted text-muted-foreground border border-border';  // Gray (neutral/archived)
     }
   };
 
@@ -294,6 +294,7 @@ export default function AnimalsIndex() {
             <Button 
               data-testid="button-add-animal"
               onClick={() => setLocation("/animals/create")}
+              className="bg-gradient-to-r from-kirby-primary to-kirby-primary-dark hover:from-kirby-primary-dark hover:to-kirby-primary text-white shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Animal
@@ -387,7 +388,7 @@ export default function AnimalsIndex() {
           {filteredAnimals.map((animal: any) => (
             <Card 
               key={animal.id} 
-              className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" 
+              className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-kirby-primary/30 hover:scale-105" 
               data-testid={`card-animal-${animal.id}`}
               onClick={() => setLocation(`/animals/${animal.id}`)}
             >

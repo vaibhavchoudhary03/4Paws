@@ -46,9 +46,9 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
 
     const variantClasses = {
       default: 'bg-primary',
-      success: 'bg-green-500',
-      warning: 'bg-yellow-500',
-      destructive: 'bg-red-500'
+      success: 'bg-kirby-accent',
+      warning: 'bg-kirby-secondary',
+      destructive: 'bg-destructive'
     };
 
     return (
@@ -119,9 +119,9 @@ export const CircularProgress = React.forwardRef<HTMLDivElement, CircularProgres
     
     const variantClasses = {
       default: 'text-primary',
-      success: 'text-green-500',
-      warning: 'text-yellow-500',
-      destructive: 'text-red-500'
+      success: 'text-kirby-accent',
+      warning: 'text-kirby-secondary',
+      destructive: 'text-destructive'
     };
 
     return (

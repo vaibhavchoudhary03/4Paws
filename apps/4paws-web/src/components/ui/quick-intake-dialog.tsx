@@ -90,7 +90,7 @@ const intakeScenarios = [
     gender: 'unknown' as const,
     intakeType: 'stray' as const,
     description: 'Found wandering, no owner present',
-    color: 'bg-orange-50 text-orange-900 border-orange-300 hover:bg-orange-100 hover:border-orange-400',
+    color: 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary hover:bg-kirby-primary/20 hover:border-kirby-primary-dark',
   },
   {
     id: 'stray_cat',
@@ -100,7 +100,7 @@ const intakeScenarios = [
     gender: 'unknown' as const,
     intakeType: 'stray' as const,
     description: 'Found wandering, no owner present',
-    color: 'bg-orange-50 text-orange-900 border-orange-300 hover:bg-orange-100 hover:border-orange-400',
+    color: 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary hover:bg-kirby-primary/20 hover:border-kirby-primary-dark',
   },
   {
     id: 'owner_surrender',
@@ -110,7 +110,7 @@ const intakeScenarios = [
     gender: 'unknown' as const,
     intakeType: 'owner_surrender' as const,
     description: 'Owner can no longer care for animal',
-    color: 'bg-orange-50 text-orange-900 border-orange-300 hover:bg-orange-100 hover:border-orange-400',
+    color: 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary hover:bg-kirby-primary/20 hover:border-kirby-primary-dark',
   },
   {
     id: 'transfer_in',
@@ -120,7 +120,7 @@ const intakeScenarios = [
     gender: 'unknown' as const,
     intakeType: 'transfer_in' as const,
     description: 'Transferred from another shelter',
-    color: 'bg-orange-50 text-orange-900 border-orange-300 hover:bg-orange-100 hover:border-orange-400',
+    color: 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary hover:bg-kirby-primary/20 hover:border-kirby-primary-dark',
   },
   {
     id: 'emergency',
@@ -130,7 +130,7 @@ const intakeScenarios = [
     gender: 'unknown' as const,
     intakeType: 'emergency' as const,
     description: 'Urgent medical or safety situation',
-    color: 'bg-orange-50 text-orange-900 border-orange-300 hover:bg-orange-100 hover:border-orange-400',
+    color: 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary hover:bg-kirby-primary/20 hover:border-kirby-primary-dark',
   },
   {
     id: 'born_in_care',
@@ -140,7 +140,7 @@ const intakeScenarios = [
     gender: 'unknown' as const,
     intakeType: 'born_in_care' as const,
     description: 'Born to animal already in our care',
-    color: 'bg-orange-50 text-orange-900 border-orange-300 hover:bg-orange-100 hover:border-orange-400',
+    color: 'bg-kirby-primary/10 text-kirby-primary-dark border-kirby-primary hover:bg-kirby-primary/20 hover:border-kirby-primary-dark',
   },
 ];
 
@@ -318,13 +318,13 @@ export default function QuickIntakeDialog({ children }: QuickIntakeDialogProps) 
           {selectedScenario && (
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Selected Scenario Badge */}
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-kirby-primary/20 to-kirby-primary/15 rounded-lg border border-kirby-primary/40 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="text-2xl">
                     {intakeScenarios.find(s => s.id === selectedScenario)?.icon}
                   </div>
                   <div>
-                    <Badge className="bg-primary text-primary-foreground text-sm px-3 py-1">
+                    <Badge className="bg-gradient-to-r from-kirby-primary to-kirby-primary-dark text-white text-sm px-3 py-1 shadow-md">
                       {intakeScenarios.find(s => s.id === selectedScenario)?.label}
                     </Badge>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -453,7 +453,7 @@ export default function QuickIntakeDialog({ children }: QuickIntakeDialogProps) 
                   <Button
                     type="submit"
                     disabled={isSubmitting || !form.watch('name')?.trim()}
-                    className="min-w-[140px] bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="min-w-[140px] bg-gradient-to-r from-kirby-primary to-kirby-primary-dark hover:from-kirby-primary-dark hover:to-kirby-primary text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {isSubmitting ? (
                       <>

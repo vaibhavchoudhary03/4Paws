@@ -161,37 +161,37 @@ const statusTransitions: StatusTransition[] = [
 const statusConfig = {
   scheduled: {
     label: "Scheduled",
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-kirby-primary/10 text-kirby-primary-dark",
     icon: <Clock className="w-4 h-4" />,
     description: "Task is scheduled and waiting to begin",
   },
   in_progress: {
     label: "In Progress",
-    color: "bg-yellow-100 text-yellow-800",
+    color: "bg-kirby-secondary/10 text-kirby-secondary-dark",
     icon: <Play className="w-4 h-4" />,
     description: "Task is currently being worked on",
   },
   pending_review: {
     label: "Pending Review",
-    color: "bg-purple-100 text-purple-800",
+    color: "bg-kirby-accent/10 text-kirby-accent-dark",
     icon: <AlertTriangle className="w-4 h-4" />,
     description: "Task is completed and awaiting review",
   },
   completed: {
     label: "Completed",
-    color: "bg-green-100 text-green-800",
+    color: "bg-kirby-accent/20 text-kirby-accent-dark",
     icon: <CheckCircle className="w-4 h-4" />,
     description: "Task has been completed successfully",
   },
   cancelled: {
     label: "Cancelled",
-    color: "bg-red-100 text-red-800",
+    color: "bg-destructive/10 text-destructive",
     icon: <XCircle className="w-4 h-4" />,
     description: "Task has been cancelled",
   },
   on_hold: {
     label: "On Hold",
-    color: "bg-orange-100 text-orange-800",
+    color: "bg-kirby-primary/20 text-kirby-primary-dark",
     icon: <Pause className="w-4 h-4" />,
     description: "Task is temporarily paused",
   },

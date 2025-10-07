@@ -531,14 +531,16 @@ export default function Dashboard() {
        */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
         {/* CARD 1: Total Animals in Care */}
-        <Card data-testid="card-stat-total" className="responsive-card">
+        <Card data-testid="card-stat-total" className="responsive-card bg-gradient-to-br from-kirby-primary/10 to-kirby-primary/20 border-kirby-primary/30 hover:shadow-lg transition-all duration-300">
           <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs lg:text-sm font-medium text-muted-foreground">Animals in Care</p>
-              <Dog className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
+              <p className="text-xs lg:text-sm font-medium text-foreground">Animals in Care</p>
+              <div className="p-2 bg-kirby-primary/30 rounded-lg">
+                <Dog className="w-4 h-4 lg:w-5 lg:h-5 text-kirby-primary-dark" />
+              </div>
             </div>
             <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-total-animals">{stats.totalAnimals}</p>
-            <p className="text-xs text-success mt-1 lg:mt-2 hidden lg:block">
+            <p className="text-xs text-muted-foreground mt-1 lg:mt-2 hidden lg:block">
               <TrendingUp className="w-3 h-3 inline mr-1" />
               Active animals
             </p>
@@ -546,11 +548,13 @@ export default function Dashboard() {
         </Card>
 
         {/* CARD 2: Available for Adoption */}
-        <Card data-testid="card-stat-available" className="responsive-card">
+        <Card data-testid="card-stat-available" className="responsive-card bg-gradient-to-br from-kirby-accent/15 to-kirby-accent/25 border-kirby-accent/30 hover:shadow-lg transition-all duration-300">
           <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs lg:text-sm font-medium text-muted-foreground">Available</p>
-              <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5 text-success" />
+              <p className="text-xs lg:text-sm font-medium text-foreground">Available</p>
+              <div className="p-2 bg-kirby-accent/30 rounded-lg">
+                <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5 text-kirby-accent-dark" />
+              </div>
             </div>
             <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-available-animals">{stats.available}</p>
             <p className="text-xs text-muted-foreground mt-1 lg:mt-2 hidden lg:block">Ready for adoption</p>
@@ -558,11 +562,13 @@ export default function Dashboard() {
         </Card>
 
         {/* CARD 3: In Foster Homes */}
-        <Card data-testid="card-stat-fostered" className="responsive-card">
+        <Card data-testid="card-stat-fostered" className="responsive-card bg-gradient-to-br from-kirby-secondary/15 to-kirby-secondary/25 border-kirby-secondary/30 hover:shadow-lg transition-all duration-300">
           <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs lg:text-sm font-medium text-muted-foreground">In Foster</p>
-              <HeartPulse className="w-4 h-4 lg:w-5 lg:h-5 text-secondary" />
+              <p className="text-xs lg:text-sm font-medium text-foreground">In Foster</p>
+              <div className="p-2 bg-kirby-secondary/30 rounded-lg">
+                <HeartPulse className="w-4 h-4 lg:w-5 lg:h-5 text-kirby-secondary-dark" />
+              </div>
             </div>
             <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-fostered-animals">{stats.fostered}</p>
             <p className="text-xs text-muted-foreground mt-1 lg:mt-2 hidden lg:block">With fosters</p>
@@ -570,16 +576,18 @@ export default function Dashboard() {
         </Card>
 
         {/* CARD 4: Overdue Medical Tasks - Requires Attention */}
-        <Card data-testid="card-stat-overdue" className="responsive-card">
+        <Card data-testid="card-stat-overdue" className={`responsive-card ${stats.overdueTasks > 0 ? 'bg-gradient-to-br from-destructive/5 to-destructive/10 border-destructive/20' : 'bg-gradient-to-br from-muted/5 to-muted/10 border-muted/20'} hover:shadow-lg transition-all duration-300`}>
           <CardContent className="pt-4 lg:pt-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs lg:text-sm font-medium text-muted-foreground">Medical Tasks Due</p>
-              <Stethoscope className="w-4 h-4 lg:w-5 lg:h-5 text-warning" />
+              <p className={`text-xs lg:text-sm font-medium ${stats.overdueTasks > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>Medical Tasks Due</p>
+              <div className={`p-2 rounded-lg ${stats.overdueTasks > 0 ? 'bg-destructive/20' : 'bg-muted/20'}`}>
+                <Stethoscope className={`w-4 h-4 lg:w-5 lg:h-5 ${stats.overdueTasks > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
+              </div>
             </div>
-            <p className="text-2xl lg:text-3xl font-bold text-foreground" data-testid="text-overdue-tasks">{stats.overdueTasks}</p>
-            <p className="text-xs text-destructive mt-1 lg:mt-2 hidden lg:block">
+            <p className={`text-2xl lg:text-3xl font-bold ${stats.overdueTasks > 0 ? 'text-destructive' : 'text-foreground'}`} data-testid="text-overdue-tasks">{stats.overdueTasks}</p>
+            <p className={`text-xs mt-1 lg:mt-2 hidden lg:block ${stats.overdueTasks > 0 ? 'text-destructive/80' : 'text-muted-foreground'}`}>
               <AlertTriangle className="w-3 h-3 inline mr-1" />
-              {stats.overdueTasks} overdue
+              {stats.overdueTasks > 0 ? `${stats.overdueTasks} overdue` : 'All caught up'}
             </p>
           </CardContent>
         </Card>
@@ -610,10 +618,12 @@ export default function Dashboard() {
        * - Dismissible alerts with preferences
        */}
       {stats.overdueTasks > 0 && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex items-start space-x-3 mb-6" data-testid="alert-overdue-tasks">
-          <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
+        <div className="bg-gradient-to-r from-destructive/10 to-destructive/5 border border-destructive/30 rounded-xl p-4 flex items-start space-x-3 mb-6 shadow-lg" data-testid="alert-overdue-tasks">
+          <div className="p-2 bg-destructive/20 rounded-lg">
+            <AlertTriangle className="w-5 h-5 text-destructive" />
+          </div>
           <div className="flex-1">
-            <p className="font-semibold text-destructive">
+            <p className="font-semibold text-destructive text-lg">
               {stats.overdueTasks} Overdue Medical Tasks
             </p>
             <p className="text-sm text-destructive/80 mt-1">
@@ -623,7 +633,7 @@ export default function Dashboard() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-destructive border-destructive" 
+            className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" 
             data-testid="button-view-overdue"
             onClick={handleViewAllTasks}
           >

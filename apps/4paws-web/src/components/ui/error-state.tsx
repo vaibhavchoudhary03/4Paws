@@ -59,45 +59,45 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           icon: WifiOff,
           defaultTitle: 'Connection Error',
           defaultMessage: 'Unable to connect to the server. Please check your internet connection and try again.',
-          iconColor: 'text-orange-500',
-          bgColor: 'bg-orange-50',
-          borderColor: 'border-orange-200'
+        iconColor: 'text-kirby-secondary-dark',
+        bgColor: 'bg-kirby-secondary/10',
+        borderColor: 'border-kirby-secondary/20'
         };
       case 'notFound':
         return {
           icon: FileX,
           defaultTitle: 'Not Found',
           defaultMessage: 'The requested resource could not be found. It may have been moved or deleted.',
-          iconColor: 'text-blue-500',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200'
+        iconColor: 'text-kirby-primary-dark',
+        bgColor: 'bg-kirby-primary/10',
+        borderColor: 'border-kirby-primary/20'
         };
       case 'permission':
         return {
           icon: Shield,
           defaultTitle: 'Access Denied',
           defaultMessage: 'You don\'t have permission to access this resource. Please contact your administrator.',
-          iconColor: 'text-red-500',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200'
+        iconColor: 'text-destructive',
+        bgColor: 'bg-destructive/10',
+        borderColor: 'border-destructive/20'
         };
       case 'server':
         return {
           icon: AlertTriangle,
           defaultTitle: 'Server Error',
           defaultMessage: 'Something went wrong on our end. We\'re working to fix it. Please try again later.',
-          iconColor: 'text-red-500',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200'
+        iconColor: 'text-destructive',
+        bgColor: 'bg-destructive/10',
+        borderColor: 'border-destructive/20'
         };
       default:
         return {
           icon: AlertTriangle,
           defaultTitle: 'Something went wrong',
           defaultMessage: 'An unexpected error occurred. Please try again or contact support if the problem persists.',
-          iconColor: 'text-gray-500',
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200'
+        iconColor: 'text-muted-foreground',
+        bgColor: 'bg-muted',
+        borderColor: 'border-border'
         };
     }
   };
@@ -271,8 +271,8 @@ export const DataLoadingState: React.FC<{
   return (
     <div className={cn("flex flex-col items-center justify-center p-8", className)}>
       <div className="text-center space-y-4">
-        <div className="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-          <RefreshCw className="w-6 h-6 text-blue-600 animate-spin" />
+        <div className="w-12 h-12 mx-auto bg-kirby-primary/10 rounded-full flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 text-kirby-primary-dark animate-spin" />
         </div>
         <p className="text-gray-600">{message}</p>
       </div>

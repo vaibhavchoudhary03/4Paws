@@ -96,10 +96,10 @@ export default function AdoptionsPipeline() {
   });
 
   const columns = [
-    { id: 'pending', title: 'Received', color: 'bg-blue-500', description: 'New applications awaiting review' },
-    { id: 'review', title: 'Under Review', color: 'bg-yellow-500', description: 'Applications being evaluated' },
-    { id: 'approved', title: 'Approved', color: 'bg-green-500', description: 'Ready for adoption' },
-    { id: 'completed', title: 'Completed', color: 'bg-purple-500', description: 'Successfully adopted' },
+    { id: 'pending', title: 'Received', color: 'bg-kirby-primary', description: 'New applications awaiting review' },
+    { id: 'review', title: 'Under Review', color: 'bg-kirby-secondary', description: 'Applications being evaluated' },
+    { id: 'approved', title: 'Approved', color: 'bg-kirby-accent', description: 'Ready for adoption' },
+    { id: 'completed', title: 'Completed', color: 'bg-kirby-primary-dark', description: 'Successfully adopted' },
   ];
 
   const getApplicationsByStatus = (status: string) => {
@@ -145,12 +145,12 @@ export default function AdoptionsPipeline() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'text-blue-600 bg-blue-50';
-      case 'review': return 'text-yellow-600 bg-yellow-50';
-      case 'approved': return 'text-green-600 bg-green-50';
-      case 'completed': return 'text-purple-600 bg-purple-50';
-      case 'rejected': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'pending': return 'text-foreground bg-kirby-primary/25 border border-kirby-primary/40 font-medium';
+      case 'review': return 'text-foreground bg-kirby-secondary/25 border border-kirby-secondary/40 font-medium';
+      case 'approved': return 'text-foreground bg-kirby-accent/25 border border-kirby-accent/40 font-medium';
+      case 'completed': return 'text-foreground bg-kirby-primary/30 border border-kirby-primary/50 font-medium';
+      case 'rejected': return 'text-destructive bg-destructive/10 border border-destructive/20';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -208,12 +208,12 @@ export default function AdoptionsPipeline() {
               const columnApps = getApplicationsByStatus(column.id);
               return (
                 <Card key={column.id} className="w-80 flex-shrink-0" data-testid={`column-${column.id}`}>
-                  <CardHeader className="border-b border-border bg-muted/50">
+                  <CardHeader className={`border-b border-border bg-gradient-to-r ${column.color}/10 to-${column.color}/5`}>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${column.color}`}></div>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${column.color} shadow-sm`}></div>
                         <div>
-                          <h3 className="font-semibold text-foreground">{column.title}</h3>
+                          <h3 className={`font-semibold ${column.color.replace('bg-', 'text-')}`}>{column.title}</h3>
                           <p className="text-xs text-muted-foreground">{column.description}</p>
                         </div>
                       </div>
@@ -231,7 +231,7 @@ export default function AdoptionsPipeline() {
                       columnApps.map((app: any) => (
                         <Card 
                           key={app.id} 
-                          className="cursor-pointer hover:shadow-md transition-shadow group"
+                          className="cursor-pointer hover:shadow-xl transition-all duration-300 group border-2 hover:border-kirby-primary/30 hover:scale-105"
                           data-testid={`card-app-${app.id}`}
                         >
                           <CardContent className="p-4">
@@ -481,22 +481,35 @@ export default function AdoptionsPipeline() {
                   Close
                 </Button>
                 {selectedApp.status === 'pending' && (
-                  <Button onClick={() => handleAction('review', selectedApp.id)}>
+                  <Button 
+                    onClick={() => handleAction('review', selectedApp.id)}
+                    className="bg-gradient-to-r from-kirby-secondary to-kirby-secondary-dark hover:from-kirby-secondary-dark hover:to-kirby-secondary text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
                     Move to Review
                   </Button>
                 )}
                 {selectedApp.status === 'review' && (
                   <>
-                    <Button variant="outline" onClick={() => handleAction('reject', selectedApp.id)}>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleAction('reject', selectedApp.id)}
+                      className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
                       Reject
                     </Button>
-                    <Button onClick={() => handleAction('approve', selectedApp.id)}>
+                    <Button 
+                      onClick={() => handleAction('approve', selectedApp.id)}
+                      className="bg-gradient-to-r from-kirby-accent to-kirby-accent-dark hover:from-kirby-accent-dark hover:to-kirby-accent text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
                       Approve
                     </Button>
                   </>
                 )}
                 {selectedApp.status === 'approved' && (
-                  <Button onClick={() => handleAction('complete', selectedApp.id)}>
+                  <Button 
+                    onClick={() => handleAction('complete', selectedApp.id)}
+                    className="bg-gradient-to-r from-kirby-primary to-kirby-primary-dark hover:from-kirby-primary-dark hover:to-kirby-primary text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
                     Complete Adoption
                   </Button>
                 )}

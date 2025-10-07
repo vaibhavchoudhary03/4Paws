@@ -7,6 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Kirby Brand Colors
+        kirby: {
+          primary: "#f28c3c",    // Lightened burnt orange
+          secondary: "#f5b041",  // Lightened golden orange  
+          accent: "#f2c94c",     // Lightened yellow-gold
+          "primary-dark": "#e67e22", // Darker variant for hover states
+          "secondary-dark": "#f39c12", // Darker variant for hover states
+          "accent-dark": "#f1c40f", // Darker variant for hover states
+        },
+        // Semantic Colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
