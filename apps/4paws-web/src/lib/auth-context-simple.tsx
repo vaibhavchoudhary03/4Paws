@@ -12,6 +12,16 @@ interface User {
   lastName?: string;
   role?: string;
   organizationId?: string;
+  profile?: {
+    phone?: string;
+    address?: string;
+    emergencyContact?: string;
+    skills?: string[];
+    availability?: string[];
+  };
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {
@@ -63,17 +73,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, message: 'No user data returned' };
       }
 
-      // Create a simple user object
-      const simpleUser: User = {
-        id: data.user.id,
-        email: data.user.email || '',
-        firstName: '',
-        lastName: '',
-        role: 'admin', // Default role for now
-        organizationId: '00000000-0000-0000-0000-000000000001', // Default organization
-      };
+      // Fetch detailed user data from database
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
 
-      setUser(simpleUser);
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+        // Fallback to basic user data
+        const simpleUser: User = {
+          id: data.user.id,
+          email: data.user.email || '',
+          firstName: '',
+          lastName: '',
+          role: 'admin',
+          organizationId: '00000000-0000-0000-0000-000000000001',
+        };
+        setUser(simpleUser);
+      } else {
+        // Use detailed user data from database
+        const detailedUser: User = {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role,
+          organizationId: userData.organizationId,
+          profile: userData.profile,
+          isActive: userData.isActive,
+          createdAt: userData.createdAt,
+          updatedAt: userData.updatedAt,
+        };
+        setUser(detailedUser);
+      }
       console.log('Sign in successful');
       return { success: true, message: 'Sign in successful' };
     } catch (error: any) {
