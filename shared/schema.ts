@@ -1,5 +1,5 @@
 /**
- * DATABASE SCHEMA - Complete data model for 4Paws animal shelter management system
+ * DATABASE SCHEMA - Complete data model for Kirby animal shelter management system
  * 
  * ARCHITECTURE OVERVIEW:
  * This schema implements a multi-tenant SaaS architecture where each organization

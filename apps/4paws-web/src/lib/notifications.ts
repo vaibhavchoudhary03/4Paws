@@ -2,7 +2,7 @@
  * NOTIFICATION SYSTEM - Centralized notification management
  * 
  * PURPOSE:
- * Manages all notifications and alerts for the 4Paws shelter management system.
+ * Manages all notifications and alerts for the Kirby shelter management system.
  * Provides real-time updates, categorization, and user interaction capabilities.
  * 
  * KEY FEATURES:
@@ -66,7 +66,7 @@ export class NotificationService {
   // Load notifications from localStorage or API
   private loadNotifications() {
     try {
-      const stored = localStorage.getItem('4paws-notifications');
+      const stored = localStorage.getItem('kirby-notifications');
       if (stored) {
         this.notifications = JSON.parse(stored);
       } else {
@@ -82,7 +82,7 @@ export class NotificationService {
   // Save notifications to localStorage
   private saveNotifications() {
     try {
-      localStorage.setItem('4paws-notifications', JSON.stringify(this.notifications));
+      localStorage.setItem('kirby-notifications', JSON.stringify(this.notifications));
     } catch (error) {
       console.error('Failed to save notifications:', error);
     }

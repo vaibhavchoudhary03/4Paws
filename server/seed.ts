@@ -7,7 +7,7 @@ async function seed() {
 
   // Create demo organization
   const [org] = await db.insert(organizations).values({
-    name: "4Paws Demo Shelter",
+    name: "Kirby Demo Shelter",
     address: "123 Shelter Lane, Pet City, PC 12345",
     settings: { allowPublicAdoptions: true }
   }).returning();
@@ -26,19 +26,19 @@ async function seed() {
   
   const [adminUser] = await db.insert(users).values({
     name: "Staff Admin",
-    email: "staff@demo.4paws.org",
+    email: "staff@demo.kirby.org",
     password: hashedPassword,
   }).returning();
 
   const [fosterUser] = await db.insert(users).values({
     name: "Foster User",
-    email: "foster@demo.4paws.org",
+    email: "foster@demo.kirby.org",
     password: hashedPassword,
   }).returning();
 
   const [volunteerUser] = await db.insert(users).values({
     name: "Volunteer User",
-    email: "volunteer@demo.4paws.org",
+    email: "volunteer@demo.kirby.org",
     password: hashedPassword,
   }).returning();
 

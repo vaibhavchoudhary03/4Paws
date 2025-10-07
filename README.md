@@ -1,4 +1,4 @@
-# 4Paws - Animal Shelter Management System
+# Kirby - Animal Shelter Management System
 
 A production-ready, multi-tenant web application for U.S. animal shelters and foster-based rescues. Built with modern web technologies for speed, reliability, and ease of use.
 

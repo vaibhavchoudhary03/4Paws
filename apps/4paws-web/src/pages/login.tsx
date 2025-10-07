@@ -28,7 +28,7 @@ export default function Login() {
       if (result.success) {
         toast({
           title: "Login successful",
-          description: "Welcome to 4Paws!",
+          description: "Welcome to Kirby!",
         });
         setLocation("/dashboard");
       } else {
@@ -61,7 +61,7 @@ export default function Login() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
                 </svg>
               </div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">4Paws</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Kirby</h1>
               <p className="text-muted-foreground">Animal Shelter Management</p>
             </div>
 
@@ -117,8 +117,8 @@ export default function Login() {
             <div className="mt-6 p-4 bg-accent rounded-lg border border-border">
               <p className="text-xs font-semibold text-foreground mb-2">Demo Credentials:</p>
               <div className="text-xs text-muted-foreground space-y-1">
-                <p>• Admin: staff@demo.4paws.org / admin123</p>
-                <p>• Access: Full admin access to 4Paws Animal Shelter</p>
+                <p>• Admin: staff@demo.kirby.org / admin123</p>
+                <p>• Access: Full admin access to Kirby Animal Shelter</p>
                 <p>• Data: All seeded animals, medical records, and reports</p>
               </div>
             </div>

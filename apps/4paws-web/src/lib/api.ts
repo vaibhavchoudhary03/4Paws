@@ -23,9 +23,9 @@ export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     // Mock authentication for demo
     const demoUsers = {
-      'staff@demo.4paws.org': { role: 'admin', name: 'Staff User' },
-      'foster@demo.4paws.org': { role: 'foster', name: 'Foster User' },
-      'volunteer@demo.4paws.org': { role: 'volunteer', name: 'Volunteer User' },
+      'staff@demo.kirby.org': { role: 'admin', name: 'Staff User' },
+      'foster@demo.kirby.org': { role: 'foster', name: 'Foster User' },
+      'volunteer@demo.kirby.org': { role: 'volunteer', name: 'Volunteer User' },
     };
     
     if (credentials.password === 'demo-only' && demoUsers[credentials.email as keyof typeof demoUsers]) {
@@ -38,7 +38,7 @@ export const authApi = {
         },
         organization: {
           id: '00000000-0000-0000-0000-000000000001',
-          name: '4Paws Demo Shelter',
+          name: 'Kirby Demo Shelter',
         },
         role: user.role,
       };
@@ -58,11 +58,11 @@ export const authApi = {
       user: {
         id: 'demo-user-id',
         name: 'Staff User',
-        email: 'staff@demo.4paws.org',
+        email: 'staff@demo.kirby.org',
       },
       organization: {
         id: '00000000-0000-0000-0000-000000000001',
-        name: '4Paws Demo Shelter',
+        name: 'Kirby Demo Shelter',
       },
       role: 'admin',
     };

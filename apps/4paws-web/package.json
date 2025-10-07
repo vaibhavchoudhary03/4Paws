@@ -1,5 +1,5 @@
 {
-  "name": "@4paws/web",
+  "name": "@kirby/web",
   "version": "0.0.1",
   "type": "module",
   "scripts": {

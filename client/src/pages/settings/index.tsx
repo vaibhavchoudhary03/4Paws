@@ -37,7 +37,7 @@ export default function SettingsIndex() {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="org-name">Organization Name</Label>
-                <Input id="org-name" defaultValue="4Paws Demo Shelter" data-testid="input-org-name" />
+                <Input id="org-name" defaultValue="Kirby Demo Shelter" data-testid="input-org-name" />
               </div>
               <div>
                 <Label htmlFor="org-address">Address</Label>

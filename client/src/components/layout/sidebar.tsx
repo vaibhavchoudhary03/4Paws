@@ -39,7 +39,7 @@ export default function Sidebar() {
             </svg>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-foreground">4Paws</h2>
+            <h2 className="text-lg font-bold text-foreground">Kirby</h2>
             <p className="text-xs text-muted-foreground" data-testid="text-org-name">Demo Shelter</p>
           </div>
         </Link>

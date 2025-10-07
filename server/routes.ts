@@ -1,5 +1,5 @@
 /**
- * API ROUTES - All HTTP endpoints for the 4Paws application
+ * API ROUTES - All HTTP endpoints for the Kirby application
  * 
  * ARCHITECTURE OVERVIEW:
  * This file registers all RESTful API routes with Express. The API follows these patterns:

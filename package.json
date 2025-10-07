@@ -1,5 +1,5 @@
 {
-  "name": "4paws-monorepo",
+  "name": "kirby-monorepo",
   "private": true,
   "type": "module",
   "devDependencies": {

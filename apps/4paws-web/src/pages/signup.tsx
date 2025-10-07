@@ -210,7 +210,7 @@ export default function Signup() {
             Back to Login
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Join 4Paws</h1>
+            <h1 className="text-3xl font-bold text-foreground">Join Kirby</h1>
             <p className="text-muted-foreground">Create your account and request access to a shelter</p>
           </div>
         </div>
